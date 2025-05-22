@@ -18,7 +18,7 @@ struct SpareTrousersApp: App {
             if viewModel.userSession != nil {
                             HomeScreen(viewModel: viewModel)
                         } else {
-                            LoginView(viewModel: viewModel)
+                            LoginRegisterView(viewModel: viewModel)
                         }
         }
     }
