@@ -42,9 +42,22 @@
 		3FCF85632DDEC38400695E6B /* SpareTrousersUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SpareTrousersUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		3FA3BD112DDEF64D004C2D56 /* Exceptions for "SpareTrousers" folder in "SpareTrousers" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 3FCF85482DDEC38200695E6B /* SpareTrousers */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3FCF854B2DDEC38200695E6B /* SpareTrousers */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3FA3BD112DDEF64D004C2D56 /* Exceptions for "SpareTrousers" folder in "SpareTrousers" target */,
+			);
 			path = SpareTrousers;
 			sourceTree = "<group>";
 		};
@@ -434,6 +447,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"SpareTrousers/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SpareTrousers/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -462,6 +476,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"SpareTrousers/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SpareTrousers/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
