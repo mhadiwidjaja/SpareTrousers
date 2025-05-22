@@ -11,6 +11,12 @@ import Firebase
 struct SpareTrousersApp: App {
     @StateObject var viewModel = AuthViewModel()
     init() {
+        for family in UIFont.familyNames {
+            print("Family: \(family)")
+            for name in UIFont.fontNames(forFamilyName: family) {
+                print("  Font: \(name)")
+            }
+        }
             FirebaseApp.configure() // Initialize Firebase when the app starts
         }
     var body: some Scene {
