@@ -9,16 +9,32 @@ import SwiftUI
 
 struct HomeScreen: View {
     @ObservedObject var viewModel: AuthViewModel
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationView {
+            VStack(spacing: 20) {
+                Image(systemName: "globe")
+                    .imageScale(.large)
+                    .foregroundStyle(.tint)
+
+                Text("Hello, world!")
+                    .font(.title)
+
+                // any other content…
+            }
+            .padding()
+            .navigationTitle("Home")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Logout") {
+                        viewModel.logout()
+                    }
+                }
+            }
         }
-        .padding()
     }
 }
+
 
 //#Preview {
 //    HomeScreen()
