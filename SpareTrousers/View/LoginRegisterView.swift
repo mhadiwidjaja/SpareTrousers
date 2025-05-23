@@ -26,7 +26,7 @@ struct LoginRegisterView: View {
                     Spacer().frame(height: 24)
 
                     ZStack {
-                        Color.blue
+                        Color.appBlue
                             .frame(width: 80, height: 80)
                             .cornerRadius(10)
                         Image("SpareTrousers")
@@ -38,53 +38,53 @@ struct LoginRegisterView: View {
                     VStack(spacing: -8) {
                         Text("Welcome to")
                             .font(.custom("MarkerFelt-Wide", size: 24))
-                            .foregroundColor(.white)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
+                            .foregroundColor(.appWhite)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
                         Text("Spare Trousers")
                             .font(.custom("MarkerFelt-Wide", size: 40))
-                            .foregroundColor(.white)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
+                            .foregroundColor(.appWhite)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
                     }
                 }
                 .padding(.bottom, 20)
                 .frame(maxWidth: .infinity)
-                .background(Color.blue)
+                .background(Color.appBlue)
 
                 // Orange Form
                 VStack(spacing: 16) {
                     TextField("Enter email", text: $loginEmail)
                         .padding(.vertical, 20)
                         .padding(.horizontal, 16)
-                        .background(Color.white)
+                        .background(Color.appWhite)
                         .cornerRadius(10)
                         .overlay(
                             RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.black, lineWidth: 2)
+                                .stroke(Color.appBlack, lineWidth: 2)
                         )
 
                     SecureField("Enter password", text: $loginPassword)
                         .padding(.vertical, 20)
                         .padding(.horizontal, 16)
-                        .background(Color.white)
+                        .background(Color.appWhite)
                         .cornerRadius(10)
                         .overlay(
                             RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.black, lineWidth: 2)
+                                .stroke(Color.appBlack, lineWidth: 2)
                         )
 
                     HStack {
                         Spacer()
                         Text("New User?")
                         Button("Register") { showingRegister = true }
-                            .foregroundColor(.blue)
+                            .foregroundColor(.appBlue)
                     }
 
                     Button {
@@ -93,29 +93,29 @@ struct LoginRegisterView: View {
                     } label: {
                         Text("LOGIN")
                             .font(.custom("MarkerFelt-Wide", size: 48))
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
                             .frame(maxWidth: .infinity)
                             .frame(height: 66)
-                            .background(Color.blue)
-                            .foregroundColor(.white)
+                            .background(Color.appBlue)
+                            .foregroundColor(.appWhite)
                             .cornerRadius(10)
                     }
                 }
                 .frame(maxWidth: .infinity)       // ensure full‐width orange
                 .padding(20)
-                .background(Color.orange)
+                .background(Color.appOrange)
             }
-            .background(Color.white)                               // white fill
+            .background(Color.appWhite)                               // white fill
             .clipShape(
                 RoundedRectangle(cornerRadius: 20)
             )         // clip all children
             .overlay(                                              // black border on top
                 RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color.black, lineWidth: 4)
+                    .stroke(Color.appBlack, lineWidth: 4)
             )
             .padding(
                 24
@@ -154,46 +154,46 @@ struct RegisterCard: View {
                     VStack(spacing: -8) {
                         Text("Welcome to")
                             .font(.custom("MarkerFelt-Wide", size: 24))
-                            .foregroundColor(.white)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
+                            .foregroundColor(.appWhite)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
                         Text("Spare Trousers")
                             .font(.custom("MarkerFelt-Wide", size: 40))
-                            .foregroundColor(.white)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
+                            .foregroundColor(.appWhite)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
                     }
                 }
                 .padding(.bottom, 20)
                 .frame(maxWidth: .infinity)
-                .background(Color.blue)
+                .background(Color.appBlue)
 
                 // Orange Form
                 VStack(spacing: 16) {
                     TextField("Enter email", text: $email)
                         .padding(.vertical, 20)
                         .padding(.horizontal, 16)
-                        .background(Color.white)
+                        .background(Color.appWhite)
                         .cornerRadius(10)
                         .overlay(
                             RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.black, lineWidth: 2)
+                                .stroke(Color.appBlack, lineWidth: 2)
                         )
 
                     SecureField("Enter password", text: $password)
                         .padding(.vertical, 20)
                         .padding(.horizontal, 16)
-                        .background(Color.white)
+                        .background(Color.appWhite)
                         .cornerRadius(10)
                         .overlay(
                             RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.black, lineWidth: 2)
+                                .stroke(Color.appBlack, lineWidth: 2)
                         )
 
                     HStack {
@@ -202,7 +202,7 @@ struct RegisterCard: View {
                         Button("Login") {
                             dismiss()
                         }
-                        .foregroundColor(.blue)
+                        .foregroundColor(.appBlue)
                     }
 
                     Button {
@@ -211,29 +211,29 @@ struct RegisterCard: View {
                     } label: {
                         Text("REGISTER")
                             .font(.custom("MarkerFelt-Wide", size: 48))
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
-                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
                             .frame(maxWidth: .infinity)
                             .frame(height: 66)
-                            .background(Color.blue)
-                            .foregroundColor(.white)
+                            .background(Color.appBlue)
+                            .foregroundColor(.appWhite)
                             .cornerRadius(10)
                     }
                 }
                 .frame(maxWidth: .infinity)    // ensures full‐width orange
                 .padding(20)
-                .background(Color.orange)
+                .background(Color.appOrange)
             }
-            .background(Color.white)                     // white fill
+            .background(Color.appWhite)                     // white fill
             .clipShape(
                 RoundedRectangle(cornerRadius: 20)
             ) // clip to rounded card
             .overlay(                                      // black border
                 RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color.black, lineWidth: 4)
+                    .stroke(Color.appBlack, lineWidth: 4)
             )
             .padding(24)
 

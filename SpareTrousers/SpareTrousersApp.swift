@@ -22,7 +22,7 @@ struct SpareTrousersApp: App {
     var body: some Scene {
         WindowGroup {
             if viewModel.userSession != nil {
-                            HomeScreen(viewModel: viewModel)
+                            HomeView()
                         } else {
                             LoginRegisterView(viewModel: viewModel)
                         }
