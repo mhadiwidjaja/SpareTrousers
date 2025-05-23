@@ -35,15 +35,23 @@ struct LoginRegisterView: View {
                             .frame(width: 100, height: 100)
                     }
 
-                    VStack(spacing: 4) {
+                    VStack(spacing: -8) {
                         Text("Welcome to")
-                            .font(.title3).bold()
+                            .font(.custom("MarkerFelt-Wide", size: 24))
                             .foregroundColor(.white)
-                            .shadow(radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
                         Text("Spare Trousers")
-                            .font(.largeTitle).bold()
+                            .font(.custom("MarkerFelt-Wide", size: 40))
                             .foregroundColor(.white)
-                            .shadow(radius: 2)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
                     }
                 }
                 .padding(.bottom, 20)
@@ -80,16 +88,21 @@ struct LoginRegisterView: View {
                     }
 
                     Button {
-                        viewModel.login(email: loginEmail, password: loginPassword)
+                        viewModel
+                            .login(email: loginEmail, password: loginPassword)
                     } label: {
                         Text("LOGIN")
-                            .font(.title2).bold()
+                            .font(.custom("MarkerFelt-Wide", size: 48))
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
                             .frame(maxWidth: .infinity)
                             .frame(height: 66)
                             .background(Color.blue)
                             .foregroundColor(.white)
                             .cornerRadius(10)
-                            .shadow(radius: 2, x: 1, y: 1)
                     }
                 }
                 .frame(maxWidth: .infinity)       // ensure full‐width orange
@@ -97,12 +110,16 @@ struct LoginRegisterView: View {
                 .background(Color.orange)
             }
             .background(Color.white)                               // white fill
-            .clipShape(RoundedRectangle(cornerRadius: 20))         // clip all children
+            .clipShape(
+                RoundedRectangle(cornerRadius: 20)
+            )         // clip all children
             .overlay(                                              // black border on top
                 RoundedRectangle(cornerRadius: 20)
                     .stroke(Color.black, lineWidth: 4)
             )
-            .padding(24)                                           // outer padding
+            .padding(
+                24
+            )                                           // outer padding
 
             Spacer()
         }
@@ -134,15 +151,23 @@ struct RegisterCard: View {
                         .scaledToFit()
                         .frame(width: 100, height: 100)
 
-                    VStack(spacing: 4) {
+                    VStack(spacing: -8) {
                         Text("Welcome to")
-                            .font(.title3).bold()
+                            .font(.custom("MarkerFelt-Wide", size: 24))
                             .foregroundColor(.white)
-                            .shadow(radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
                         Text("Spare Trousers")
-                            .font(.largeTitle).bold()
+                            .font(.custom("MarkerFelt-Wide", size: 40))
                             .foregroundColor(.white)
-                            .shadow(radius: 2)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
                     }
                 }
                 .padding(.bottom, 20)
@@ -185,13 +210,17 @@ struct RegisterCard: View {
                         dismiss()
                     } label: {
                         Text("REGISTER")
-                            .font(.title2).bold()
+                            .font(.custom("MarkerFelt-Wide", size: 48))
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
+                            .shadow(color: .black, radius: 1)
                             .frame(maxWidth: .infinity)
                             .frame(height: 66)
                             .background(Color.blue)
                             .foregroundColor(.white)
                             .cornerRadius(10)
-                            .shadow(radius: 2, x: 1, y: 1)
                     }
                 }
                 .frame(maxWidth: .infinity)    // ensures full‐width orange
@@ -199,7 +228,9 @@ struct RegisterCard: View {
                 .background(Color.orange)
             }
             .background(Color.white)                     // white fill
-            .clipShape(RoundedRectangle(cornerRadius: 20)) // clip to rounded card
+            .clipShape(
+                RoundedRectangle(cornerRadius: 20)
+            ) // clip to rounded card
             .overlay(                                      // black border
                 RoundedRectangle(cornerRadius: 20)
                     .stroke(Color.black, lineWidth: 4)
