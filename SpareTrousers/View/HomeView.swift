@@ -7,41 +7,73 @@
 
 import SwiftUI
 
+
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     let topSectionCornerRadius: CGFloat = 18
 
     var body: some View {
         ZStack(alignment: .bottom) {
+            // Pale background only shows on non-home tabs
             Color.appOffWhite
                 .edgesIgnoringSafeArea(.all)
+
             VStack(spacing: 0) {
-                TopNavBar(
-                    searchText: $viewModel.searchText,
-                    onSearchTapped: viewModel.performSearch
-                )
-                
-                ScrollView {
-                    VStack(spacing: 0) {
-                        Spacer().frame(height: topSectionCornerRadius)
-                        VStack(alignment: .leading, spacing: 20) {
-                            CategoriesSection(categories: viewModel.categories)
-                            NearYouSection(items: viewModel.nearYouItems)
-                            Spacer(minLength: 80)
+                Group {
+                    switch viewModel.selectedTab {
+                    case .home:
+                        // Home: full-screen white under header + content
+                        VStack(spacing: 0) {
+                            TopNavBar(
+                                searchText: $viewModel.searchText,
+                                onSearchTapped: viewModel.performSearch
+                            )
+                            .ignoresSafeArea(edges: .top)    // extend under notch
+
+                            ScrollView {
+                                VStack(spacing: 0) {
+                                    Spacer().frame(height: topSectionCornerRadius)
+                                    VStack(alignment: .leading, spacing: 20) {
+                                        CategoriesSection(categories: viewModel.categories)
+                                        NearYouSection(items: viewModel.nearYouItems)
+                                        Spacer(minLength: 80)
+                                    }
+                                    .padding(.horizontal)
+                                }
+                            }
+                            .background(Color.appWhite)
+                            .clipShape(
+                                RoundedCorner(
+                                    radius: topSectionCornerRadius,
+                                    corners: [.topLeft, .topRight]
+                                )
+                            )
+                            .padding(.top, -60)
                         }
-                        .padding(.horizontal)
+                        .background(Color.appWhite)
+                        .ignoresSafeArea(edges: .bottom)   
+
+                    case .myRentals:
+                        MyRentalsView()
+
+                    case .inbox:
+                        InboxView()
+
+                    case .account:
+                        AccountView()
                     }
                 }
-                .background(Color.appWhite)
-                .clipShape(RoundedCorner(radius: topSectionCornerRadius, corners: [.topLeft, .topRight]))
-                .padding(.top, 16)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+
             BottomNavBar(selectedTab: $viewModel.selectedTab)
         }
         .navigationBarHidden(true)
         .navigationBarBackButtonHidden(true)
     }
 }
+
+
 
 struct RoundedCorner: Shape {
     var radius: CGFloat = .infinity
@@ -60,6 +92,7 @@ struct TopNavBar: View {
 
     var body: some View {
         VStack(spacing: 10) {
+            Spacer().frame(height: 50)
             HStack {
                 Text("Home")
                     .font(.custom("MarkerFelt-Wide", size: 36))
