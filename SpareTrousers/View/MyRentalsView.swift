@@ -8,81 +8,109 @@
 import SwiftUI
 
 struct MyRentalsView: View {
-    // corner radius for the scrollable content
+    // corner radius for the white content
     let topSectionCornerRadius: CGFloat = 18
 
     var body: some View {
-        VStack(spacing: 0) {
-            // ───── BLUE HEADER ─────
-            VStack(spacing: 10) {
-                Spacer().frame(height: 20)   
-                HStack {
-                    Text("My Rentals")
-                        .font(.custom("MarkerFelt-Wide", size: 36))
-                        .foregroundColor(.appWhite)
-                        .shadow(color: .appBlack, radius: 1)
-                    Spacer()
-                    Image("SpareTrousers")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 50, height: 50)
-                }
-                .padding(.horizontal)
-            }
-            .padding(.bottom, 10)
-            .background(Color.appBlue.edgesIgnoringSafeArea(.top))
-            .clipShape(
-                RoundedCorner(radius: 18, corners: [.bottomLeft, .bottomRight])
-            )
-
-            // ───── CONTENT ─────
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // Borrowing section
-                    Text("My Borrowing")
-                        .font(.custom("MarkerFelt-Wide", size: 24))
-                        .foregroundColor(.appBlack)
-                        .padding(.leading, 5)
-
-                    ForEach(0..<3) { _ in
-                        RentalRow()
-                    }
-
-                    // Lending section
+        GeometryReader { geo in
+            VStack(spacing: 0) {
+                // ───── BLUE HEADER (UNCHANGED) ─────
+                VStack(spacing: 10) {
+                    Spacer().frame(height: 80)
                     HStack {
-                        Text("My Lending")
+                        Text("My Rentals")
+                            .font(.custom("MarkerFelt-Wide", size: 36))
+                            .foregroundColor(.appWhite)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                        Spacer()
+                        Image("SpareTrousers")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 50, height: 50)
+                    }
+                    .padding(.horizontal)
+                }
+                .padding(.bottom, 10)
+                .background(Color.appBlue.edgesIgnoringSafeArea(.top))
+                .clipShape(
+                    RoundedCorner(radius: 18, corners: [.bottomLeft, .bottomRight])
+                )
+                .offset(y: -86)
+
+                // ───── WHITE ROUNDED CONTENT ─────
+                ZStack(alignment: .top) {
+                    // full-height white background with only top corners rounded
+                    Color.appWhite
+                        .clipShape(
+                            RoundedCorner(
+                                radius: topSectionCornerRadius,
+                                corners: [.topLeft, .topRight]
+                            )
+                        )
+
+                    // your content
+                    VStack(spacing: 16) {
+                        Text("My Borrowing")
                             .font(.custom("MarkerFelt-Wide", size: 24))
                             .foregroundColor(.appBlack)
-                        Spacer()
-                        Button(action: {}) {
-                            Image(systemName: "plus")
-                                .font(.title2)
-                                .foregroundColor(.appBlack)
+                            .padding(.leading, 5)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        ScrollView {
+                            VStack(spacing: 2) {
+                                ForEach(0..<5) { _ in RentalRow() }
+                            }
+                            .padding(.horizontal)
                         }
-                    }
-                    .padding(.horizontal, 5)
+                        .frame(maxHeight: 250)
+                        .background(Color.appWhite)
+                        .cornerRadius(10)
 
-                    ForEach(0..<2) { _ in
-                        RentalRow()
-                    }
+                        HStack {
+                            Text("My Lending")
+                                .font(.custom("MarkerFelt-Wide", size: 24))
+                                .foregroundColor(.appBlack)
+                            Spacer()
+                            Button { } label: {
+                                Image(systemName: "plus")
+                                    .font(.title2)
+                                    .foregroundColor(.appBlack)
+                            }
+                        }
+                        .padding(.horizontal, 5)
 
-                    Spacer(minLength: 40)
+                        ScrollView {
+                            VStack(spacing: 2) {
+                                ForEach(0..<4) { _ in RentalRow(isBorrowing: false) }
+                            }
+                            .padding(.horizontal)
+                        }
+                        .frame(maxHeight: 250)
+                        .background(Color.appWhite)
+                        .cornerRadius(10)
+                    }
+                    .padding(.top, 16)
+                    .padding(.horizontal)
+                    .padding(.bottom, 24)
                 }
-                .padding(.horizontal)
-                .padding(.top, 16)
+                // ← here we let the ZStack fill the rest of the screen
+                .frame(width: geo.size.width, height: geo.size.height + 86)
+                .ignoresSafeArea(edges: .bottom)
+                .offset(y: -68)
+
             }
-            .background(Color.appWhite)
-            .clipShape(
-                RoundedCorner(radius: topSectionCornerRadius,
-                              corners: [.topLeft, .topRight])
-            )
-            .ignoresSafeArea(edges: .bottom)  // extend under home‐indicator
+            .background(Color.appOffWhite.edgesIgnoringSafeArea(.all))
         }
-        .background(Color.appOffWhite.edgesIgnoringSafeArea(.all))
     }
 }
 
 struct RentalRow: View {
+    var isBorrowing: Bool = true
+
     var body: some View {
         HStack(spacing: 12) {
             Image("DummyProduct")
@@ -94,10 +122,10 @@ struct RentalRow: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("Orange and Blue Trousers")
-                    .font(.headline)
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.appBlack)
 
-                Text("Lender: Jimbo")
+                Text(isBorrowing ? "Lender: Jimbo" : "Borrower: Jimbo")
                     .font(.subheadline)
                     .foregroundColor(.appOffGray)
 
@@ -107,9 +135,11 @@ struct RentalRow: View {
 
                 HStack(spacing: 4) {
                     Circle()
-                        .fill(Color.red)
+                        .fill(isBorrowing ? Color.red : Color.green)
                         .frame(width: 10, height: 10)
-                    Text("Status: Rent due today")
+                    Text(isBorrowing
+                         ? "Status: Rent due today"
+                         : "Status: Active")
                         .font(.caption2)
                         .foregroundColor(.appBlack)
                 }
