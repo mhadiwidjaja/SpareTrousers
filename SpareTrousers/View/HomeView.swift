@@ -33,6 +33,7 @@ struct HomeView: View {
         // Alternatively, you could pass it more selectively if only AccountView needs it.
         // However, if other tabs might also need auth state, providing it here is common.
         .environmentObject(authViewModel)
+        .environmentObject(homeViewModel)
     }
 
     @ViewBuilder

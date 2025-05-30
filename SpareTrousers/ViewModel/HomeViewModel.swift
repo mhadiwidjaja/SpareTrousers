@@ -537,7 +537,7 @@ class HomeViewModel: ObservableObject {
     func isAnyFilterActive() -> Bool { selectedCategoryId != nil || (isSearchActive && !searchText.isEmpty) }
     func calculateOverlapHeight() -> CGFloat { 40 }
 
-    func addItemToFirebase(name: String, localCategory: CategoryItem, price: String, ownerUid: String, imageName: String = "SpareTrousers") {
+    func addItemToFirebase(name: String, localCategory: CategoryItem, price: String, ownerUid: String, imageName: String = "DummyProduct") {
         guard categories.contains(where: { $0.id == localCategory.id }) else {
             self.errorMessage = "Invalid category provided for new item."; print(self.errorMessage!); return
         }

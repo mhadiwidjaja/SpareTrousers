@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct CategoryItem: Identifiable {
+struct CategoryItem: Identifiable, Hashable {
     let id: Int
     let name: String
     let iconName: String
