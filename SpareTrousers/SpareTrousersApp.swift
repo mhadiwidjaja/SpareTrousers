@@ -45,6 +45,7 @@ struct SpareTrousersApp: App {
         WindowGroup {
             if viewModel.userSession != nil {
                 HomeView()
+                    .environmentObject(viewModel) // <-- This line is added
             } else {
                 LoginRegisterView(viewModel: viewModel)
             }
