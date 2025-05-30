@@ -11,6 +11,6 @@ import SwiftUI
 struct CategoryItem: Identifiable {
     let id = UUID()
     let name: String
-    let iconName: String // SF Symbol name
+    let iconName: String
     let color: Color
 }
