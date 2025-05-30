@@ -8,22 +8,10 @@
 import SwiftUI
 
 struct InboxView: View {
-    // corner radius for the white content
+    @StateObject private var viewModel = InboxViewModel()
     let topSectionCornerRadius: CGFloat = 18
-
-    // placeholder messages
-    private let requests: [InboxRequest] = [
-        .init(
-            message: #"Jimbo sent a request to borrow “Orange and Blue Trousers”"#,
-            dateLine: "16-05-2025 | 20-05-2025",
-            showsReject: true
-        ),
-        .init(
-            message: #"It’s time to pick up “Orange and Blue Trousers” from Jimbo"#,
-            dateLine: "18-05-2025",
-            showsReject: false
-        )
-    ]
+    
+    @State private var showingAddDummyMessageModal = false
 
     var body: some View {
         GeometryReader { geo in
@@ -41,17 +29,31 @@ struct InboxView: View {
                             .shadow(color: .appBlack, radius: 1)
                             .shadow(color: .appBlack, radius: 1)
                         Spacer()
-                        Image("SpareTrousers")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 50, height: 50)
+                        Button {
+                            showingAddDummyMessageModal = true
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(.appWhite)
+                        }
+                        .padding(.trailing, 5)
+                        
+                        Image(
+                            "SpareTrousers"
+                        )
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 50, height: 50)
                     }
                     .padding(.horizontal)
                 }
                 .padding(.bottom, 10)
                 .background(Color.appBlue.edgesIgnoringSafeArea(.top))
                 .clipShape(
-                    RoundedCorner(radius: 18, corners: [.bottomLeft, .bottomRight])
+                    RoundedCorner(
+                        radius: 18,
+                        corners: [.bottomLeft, .bottomRight]
+                    )
                 )
                 .offset(y: -86)
 
@@ -65,14 +67,39 @@ struct InboxView: View {
                             )
                         )
 
-                    ScrollView {
-                        VStack(spacing: 12) {
-                            ForEach(requests) { req in
-                                InboxRow(request: req)
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .padding(.top, 50)
+                    } else if let errorMessage = viewModel.errorMessage {
+                        Text(errorMessage)
+                            .foregroundColor(.red)
+                            .padding()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .multilineTextAlignment(.center)
+                    } else if viewModel.inboxMessages.isEmpty {
+                        Text("Your inbox is empty.")
+                            .foregroundColor(.appOffGray)
+                            .padding()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        ScrollView {
+                            VStack(spacing: 12) {
+                                ForEach(
+                                    viewModel.inboxMessages
+                                ) { message in
+                                    InboxRow(
+                                        message: message,
+                                        viewModel: viewModel
+                                    )
                                     .padding(.horizontal)
+                                }
                             }
+                            .padding(
+                                .top,
+                                topSectionCornerRadius + 10
+                            )
+                            .padding(.bottom, 80)
                         }
-                        .padding(.top, 16)
                     }
                 }
                 .frame(width: geo.size.width, height: geo.size.height + 86)
@@ -80,6 +107,92 @@ struct InboxView: View {
                 .offset(y: -68)
             }
             .background(Color.appOffWhite.edgesIgnoringSafeArea(.all))
+            .sheet(isPresented: $showingAddDummyMessageModal) {
+                AddDummyMessageView(viewModel: viewModel)
+            }
+        }
+    }
+}
+
+// MARK: - View for Adding Dummy Message (Modal Content)
+struct AddDummyMessageView: View {
+    @ObservedObject var viewModel: InboxViewModel
+    @Environment(\.dismiss) var dismiss
+
+    @State private var messageText: String = "Dummy request for 'Awesome Trousers'"
+    @State private var dateLine: String = "\(Date().formatted(date: .numeric, time: .omitted)) - \(Calendar.current.date(byAdding: .day, value: 5, to: Date())!.formatted(date: .numeric, time: .omitted))"
+    @State private var type: String = "rentalRequest"
+    @State private var showsReject: Bool = true
+    @State private var relatedItemName: String = "Awesome Trousers"
+
+    let messageTypes = [
+        "rentalRequest",
+        "pickupReminder",
+        "returnReminder",
+        "info"
+    ]
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Dummy Message Details")) {
+                    TextField("Message Text", text: $messageText)
+                    TextField("Date Line", text: $dateLine)
+                    TextField("Related Item Name", text: $relatedItemName)
+                    
+                    Picker("Message Type", selection: $type) {
+                        ForEach(messageTypes, id: \.self) { typeName in
+                            Text(typeName.capitalized)
+                        }
+                    }
+                    .onChange(of: type) { oldValue, newValue in
+                        print("Type changed from \(oldValue) to \(newValue)")
+                        showsReject = (newValue == "rentalRequest")
+                        if newValue == "rentalRequest" {
+                            messageText = "Dummy request for '\(relatedItemName)'"
+                        } else if newValue == "pickupReminder" {
+                            messageText = "Time to pick up '\(relatedItemName)'"
+                        } else if newValue == "info" {
+                            messageText = "Information regarding '\(relatedItemName)'"
+                        } else {
+                            messageText = "Reminder about '\(relatedItemName)'"
+                        }
+                    }
+                    
+                    Toggle("Shows Reject Button", isOn: $showsReject)
+                }
+
+                Button("Add Dummy Inbox Item") {
+                    viewModel.createDummyInboxItem(
+                        messageText: messageText,
+                        dateLine: dateLine,
+                        type: type,
+                        showsReject: showsReject,
+                        relatedItemName: relatedItemName
+                    )
+                    dismiss()
+                }
+            }
+            .navigationTitle("Add Dummy Message")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+            .onAppear {
+                if type == "rentalRequest" {
+                    messageText = "Dummy request for '\(relatedItemName)'"
+                } else if type == "pickupReminder" {
+                    messageText = "Time to pick up '\(relatedItemName)'"
+                } else if type == "info" {
+                    messageText = "Information regarding '\(relatedItemName)'"
+                } else {
+                    messageText = "Reminder about '\(relatedItemName)'"
+                }
+                showsReject = (type == "rentalRequest")
+            }
         }
     }
 }
@@ -94,47 +207,50 @@ struct InboxRequest: Identifiable {
 
 // MARK: - Row View
 struct InboxRow: View {
-    let request: InboxRequest
+    let message: InboxMessage
+    @ObservedObject var viewModel: InboxViewModel
 
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(request.message)
+                Text(message.messageText)
                     .font(.body)
                     .foregroundColor(.appBlack)
                     .fixedSize(horizontal: false, vertical: true)
 
-                Text(request.dateLine)
+                Text(message.dateLine)
                     .font(.caption)
                     .foregroundColor(.appOffGray)
             }
 
             Spacer()
 
-            HStack(spacing: 12) {
-                // Accept
-                Button {
-                    // handle accept
-                } label: {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 20, weight: .heavy))
-                        .frame(width: 32, height: 32)
-                        .background(Color.green)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                }
-
-                // Optional reject
-                if request.showsReject {
+            if message.type == "rentalRequest" {
+                HStack(spacing: 12) {
                     Button {
-                        // handle reject
+                        viewModel.acceptRequest(message: message)
                     } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 20, weight: .heavy))
-                            .frame(width: 32, height: 32)
-                            .background(Color.red)
+                        Image(systemName: "checkmark")
+                            .font(
+                                .system(size: 18, weight: .bold)
+                            ) // Slightly smaller
+                            .frame(width: 30, height: 30)
+                            .background(Color.green.opacity(0.8))
                             .foregroundColor(.white)
-                            .cornerRadius(8)
+                            .cornerRadius(6)
+                    }
+
+                    if message.showsRejectButton {
+                        Button {
+                            viewModel.rejectRequest(message: message)
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 18, weight: .bold))
+                                .frame(width: 30, height: 30)
+                                .background(Color.red.opacity(0.8))
+                                .foregroundColor(.white)
+                                .cornerRadius(6)
+                        }
                     }
                 }
             }
@@ -144,8 +260,18 @@ struct InboxRow: View {
         .cornerRadius(10)
         .overlay(
             RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.appBlack, lineWidth: 2)
+                .stroke(
+                    message.isRead ? Color.appOffWhite : Color.appBlack
+                        .opacity(0.7),
+                    lineWidth: message.isRead ? 1 : 2
+                )
         )
+        .opacity(message.isRead ? 0.8 : 1.0)
+        .onTapGesture {
+            if !message.isRead {
+                viewModel.markMessageAsRead(messageId: message.id)
+            }
+        }
     }
 }
 
