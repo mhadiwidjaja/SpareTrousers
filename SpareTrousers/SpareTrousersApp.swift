@@ -17,15 +17,15 @@ struct SpareTrousersApp: App {
                 print("  Font: \(name)")
             }
         }
-            FirebaseApp.configure() // Initialize Firebase when the app starts
-        }
+        FirebaseApp.configure()
+    }
     var body: some Scene {
         WindowGroup {
             if viewModel.userSession != nil {
-                            HomeView()
-                        } else {
-                            LoginRegisterView(viewModel: viewModel)
-                        }
+                HomeView()
+            } else {
+                LoginRegisterView(viewModel: viewModel)
+            }
         }
     }
 }
