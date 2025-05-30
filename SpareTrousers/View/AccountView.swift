@@ -9,13 +9,13 @@ import SwiftUI
 
 // MARK: - AccountView
 struct AccountView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel
+    @ObservedObject var authViewModel: AuthViewModel
     // State to control navigation to LoginRegisterView
     @State private var shouldNavigateToLoginRegister = false
 
     let topSectionCornerRadius: CGFloat = 18
-    let email = "nahidgraduate.ai@gmail.com" // Placeholder
-    let address = "Local Thunk, Balatro"     // Placeholder
+    let email = "sample email if you're seeing this Something aint right" // Placeholder
+    let address = "sample address if you're seeing this Something aint right or address unset"     // Placeholder
 
     var body: some View {
         GeometryReader { geo in
@@ -77,7 +77,7 @@ struct AccountView: View {
                                     .foregroundColor(.appBlack)
                                 Spacer()
                             }
-                            Text(address)
+                            Text(authViewModel.userAddress ?? address)
                                 .font(.subheadline)
                                 .foregroundColor(.appBlack)
                         }
@@ -171,8 +171,10 @@ struct AccountView_Previews: PreviewProvider {
     static var previews: some View {
         // Wrap in NavigationView for previewing navigation behavior
         NavigationView {
-            AccountView()
-                .environmentObject(AuthViewModel()) // Provide AuthViewModel for the preview
+            AccountView(
+                
+                authViewModel: AuthViewModel())
+                
         }
     }
 }

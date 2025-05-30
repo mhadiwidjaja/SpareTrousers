@@ -79,7 +79,7 @@ struct HomeView: View {
             // .environmentObject(authViewModel) // If InboxView needs it
 
         case .account:
-            AccountView()
+            AccountView(authViewModel: AuthViewModel())
             // AccountView will now receive authViewModel from the .environmentObject on NavigationView
             // No need to explicitly pass it here if provided at a higher level like NavigationView.
             // However, if you choose not to put .environmentObject on NavigationView,
