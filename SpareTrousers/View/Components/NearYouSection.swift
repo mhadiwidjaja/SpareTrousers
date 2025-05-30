@@ -49,14 +49,18 @@ struct ItemCardView: View {
                   .font(.headline)
                   .foregroundColor(.appBlack)
                   .lineLimit(2)
-                  .frame(minHeight: twoLineHeight, alignment: .topLeading)
+                  .multilineTextAlignment(.leading)  // Ensure left alignment of text
+                  .frame(minHeight: twoLineHeight, alignment: .leading)
 
                 Text(item.rentalPrice)
                   .font(.subheadline)
                   .foregroundColor(.appOffGray)
+                  .multilineTextAlignment(.leading)  // Ensure left alignment of text
+                  .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .padding(10)
         .cornerRadius(10)
     }
 }
+
