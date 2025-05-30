@@ -22,25 +22,16 @@ struct Review: Identifiable {
 
 
 
-// MARK: - Main View
 struct ItemDetailView: View {
-    // The item to display, passed from HomeView
     let item: DisplayItem
-
     @State private var currentPage = 0
-    // State to control navigation to RequestView (optional if NavigationLink is direct)
-    // @State private var isShowingRequestView = false // Can be removed if BorrowButton is a direct NavigationLink
 
-    // Use item.imageName as the primary, then placeholders or other images from item
     var productImages: [String] {
-        // In a real app, DisplayItem might have an array of image names.
-        // For now, using the main image and then the placeholders from your example.
-        var images = [item.imageName] // Primary image
-        images.append(contentsOf: ["SpareTrousers", "DummyProduct"]) // Additional example images
-        return images.filter { !$0.isEmpty } // Ensure no empty strings
+        var images = [item.imageName]
+        images.append(contentsOf: ["SpareTrousers", "DummyProduct"])
+        return images.filter { !$0.isEmpty }
     }
 
-    // Sample reviews (could also come from 'item' if it had review details)
     let sampleReviews = [
         Review(reviewerName: "Jimbo",
                reviewText: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque aliquam id mauris interdum egestas.",
@@ -54,98 +45,140 @@ struct ItemDetailView: View {
             Color.appOffWhite.edgesIgnoringSafeArea(.all)
 
             Color.appWhite
-                .offset(y: 290) // 350 header height − 60 overlap
+                .offset(y: 290) // Adjust if header height changes
                 .edgesIgnoringSafeArea(.bottom)
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
-                    ZStack(alignment: .bottom) {
-                        Color.appBlue // Use your app's blue
-                            .frame(height: 380)
-                            .clipShape(
-                                RoundedCorner(radius: infoCornerRadius,
-                                              corners: [.bottomLeft, .bottomRight])
-                            )
-                            .edgesIgnoringSafeArea(.top)
-
-                        // ImageCarouselView using the productImages derived from 'item'
-                        ImageCarouselViewFromUser(images: productImages,
-                                          currentPage: $currentPage)
-                           .frame(width: UIScreen.main.bounds.width * 0.8,
-                                  height: 250)
-                           .padding(.bottom, 20)
-                    }
-                    .offset(y: -106) // This offset might need adjustment if header height changes
-
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text(item.name) // Use item's name
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.appBlack)
-
-                        HStack(spacing: 12) {
-                            RatingViewFromUser(rating: 4.8, reviewCount: 69) // Placeholder rating
-                            AvailabilityViewFromUser(isAvailable: true)      // Placeholder availability
-                            Spacer()
-                        }
-
-                        Text(item.rentalPrice) // Use item's price
-                            .font(.title3)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.appBlack)
-
-                        SectionViewFromUser(title: "Description") {
-                            // Placeholder description. Ideally, this would come from 'item.description'
-                            Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque aliquam id mauris interdum egestas. In vitae ipsum ac dui facilisis tristique ac quis ligula. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque suscipit et turpis vel placerat. Aliquam non lectus efficitur, sagittis quam id, pulvinar mi.")
-                                .font(.body)
-                                .foregroundColor(.appBlack.opacity(0.7))
-                                .lineSpacing(5)
-                        }
-
-                        SectionViewFromUser(title: "Reviews", showAddButton: true) {
-                            if sampleReviews.isEmpty {
-                                Text("No reviews yet.")
-                                    .font(.body)
-                                    .foregroundColor(.appBlack.opacity(0.7))
-                            } else {
-                                ForEach(sampleReviews) { review in
-                                    ReviewCardViewFromUser(review: review)
-                                }
-                            }
-                        }
-                        Spacer(minLength: 120) // Space for the borrow button
-                    }
-                    .padding()
-                    .background(Color.appWhite)
-                    .clipShape(
-                        RoundedCorner(
-                            radius: infoCornerRadius,
-                            corners: [.topLeft, .topRight]
-                        )
+                    ItemDetailHeaderView(
+                        productImages: productImages,
+                        currentPage: $currentPage,
+                        infoCornerRadius: infoCornerRadius
                     )
-                    .offset(y: -60) // This offset pulls the white panel up
+                    .offset(y: -86)
+
+                    ItemInfoPanelView(
+                        item: item, // Pass the full item
+                        sampleReviews: sampleReviews,
+                        infoCornerRadius: infoCornerRadius
+                    )
+                    .offset(y: -60)
                 }
             }
-            // Navigation is handled by the NavigationView in HomeView
-            // .navigationBarTitleDisplayMode(.inline) // Already set if pushed by NavLink
-            // .navigationTitle(item.name) // Already set if pushed by NavLink
 
-            // Borrow Button - Modified to navigate
-            // It's placed in ZStack to overlay on ScrollView content
-            BorrowButtonModified(item: item) // Pass the item to BorrowButton
+            BorrowButtonModified(item: item)
                 .padding(.horizontal)
-                .padding(.bottom, UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 0 > 0 ? 0 : 16) // Adjust padding if home indicator is present
+                .padding(.bottom, safeAreaBottomInset())
         }
-        // ItemDetailView itself should not ignore safe area at top if it has a nav bar from parent
-        // .edgesIgnoringSafeArea(.top) // Re-evaluate this; if part of NavStack, top is usually handled
-        // The ZStack with Color.appBlue already handles .edgesIgnoringSafeArea(.top) for the blue header part
-        .navigationTitle(item.name) // Set title for the navigation bar
+        .navigationTitle(item.name)
         .navigationBarTitleDisplayMode(.inline)
+    }
+    
+    private func safeAreaBottomInset() -> CGFloat {
+        let scenes = UIApplication.shared.connectedScenes
+        let windowScene = scenes.first as? UIWindowScene
+        let window = windowScene?.windows.first
+        return window?.safeAreaInsets.bottom ?? 0 > 0 ? 0 : 16
     }
 }
 
 // MARK: - Subviews (Using user's provided versions, renamed for clarity in this merge)
 
+struct ItemDetailHeaderView: View {
+    let productImages: [String]
+    @Binding var currentPage: Int
+    let infoCornerRadius: CGFloat
 
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            Color.appBlue
+                .frame(height: 380) // Adjusted from your uploaded ItemDetailView
+                .clipShape(
+                    RoundedCorner(radius: infoCornerRadius,
+                                  corners: [.bottomLeft, .bottomRight])
+                )
+                .edgesIgnoringSafeArea(.top)
+
+            ImageCarouselViewFromUser(images: productImages,
+                                      currentPage: $currentPage)
+               .frame(width: UIScreen.main.bounds.width * 0.8,
+                      height: 250)
+               .padding(.bottom, 20)
+        }
+    }
+}
+
+struct ItemInfoPanelView: View {
+    let item: DisplayItem // Now receives the full item
+    let sampleReviews: [Review]
+    let infoCornerRadius: CGFloat
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(item.name)
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(.appBlack)
+
+            HStack(spacing: 12) {
+                RatingViewFromUser(rating: 4.8, reviewCount: 69)
+                // Use item.isAvailable if you fetch it and pass it
+                AvailabilityViewFromUser(isAvailable: item.isAvailable ?? true)
+                Spacer()
+            }
+
+            Text(item.rentalPrice)
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundColor(.appBlack)
+
+            // Use item.description here
+            ItemDescriptionSection(description: item.description)
+
+            ItemReviewsSection(sampleReviews: sampleReviews)
+            
+            Spacer(minLength: 120)
+        }
+        .padding()
+        .background(Color.appWhite)
+        .clipShape(
+            RoundedCorner(
+                radius: infoCornerRadius,
+                corners: [.topLeft, .topRight]
+            )
+        )
+    }
+}
+
+struct ItemReviewsSection: View {
+    let sampleReviews: [Review]
+
+    var body: some View {
+        SectionViewFromUser(title: "Reviews", showAddButton: true) {
+            if sampleReviews.isEmpty {
+                Text("No reviews yet.")
+                    .font(.body)
+                    .foregroundColor(.appBlack.opacity(0.7))
+            } else {
+                ForEach(sampleReviews) { review in
+                    ReviewCardViewFromUser(review: review)
+                }
+            }
+        }
+    }
+}
+
+struct ItemDescriptionSection: View {
+    let description: String
+
+    var body: some View {
+        SectionViewFromUser(title: "Description") {
+            Text(description.isEmpty ? "No description available." : description) // Display item's description
+                .font(.body)
+                .foregroundColor(.appBlack.opacity(0.7))
+                .lineSpacing(5)
+        }
+    }
+}
 
 struct ImageCarouselViewFromUser: View {
     let images: [String]
@@ -291,21 +324,13 @@ struct BorrowButtonModified: View {
 }
 
 
-// MARK: - Preview
+
+
 struct ItemDetailView_Previews: PreviewProvider {
-    // Sample item for preview. Ensure "DummyProduct" exists in your Assets.
-    static var sampleItem = DisplayItem(id: "123", name: "Orange and Blue Trousers", imageName: "DummyProduct", rentalPrice: "Rp 20.000 /day", categoryId: 1)
+    static var sampleItem = DisplayItem(id: "123", name: "Orange Trousers", imageName: "DummyProduct", rentalPrice: "Rp 20.000 /day", categoryId: 1, description: "These are some comfortable orange trousers, perfect for a sunny day out. Made from breathable cotton.", isAvailable: true, ownerUid: "owner123")
 
     static var previews: some View {
-        // Wrap in NavigationView for previewing navigation behavior
-        NavigationView {
-            ItemDetailView(item: sampleItem)
-        }
-        .preferredColorScheme(.light) // User's preview was light only, added dark for completeness
-        
-        NavigationView {
-            ItemDetailView(item: sampleItem)
-        }
-        .preferredColorScheme(.dark)
+        NavigationView { ItemDetailView(item: sampleItem) }.preferredColorScheme(.light)
+        NavigationView { ItemDetailView(item: sampleItem) }.preferredColorScheme(.dark)
     }
 }

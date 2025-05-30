@@ -181,18 +181,18 @@ struct RequestView: View {
 }
 
 // MARK: - Preview
-struct RequestView_Previews: PreviewProvider {
-    static var sampleItem = DisplayItem(id: "123", name: "Orange and Blue Trousers", imageName: "DummyProduct", rentalPrice: "Rp 20.000 /day", categoryId: 1)
-
-    static var previews: some View {
-        NavigationView {
-            RequestView(item: sampleItem)
-        }
-        .preferredColorScheme(.light)
-
-        NavigationView {
-            RequestView(item: sampleItem)
-        }
-        .preferredColorScheme(.dark)
-    }
-}
+//struct RequestView_Previews: PreviewProvider {
+//    static var sampleItem = DisplayItem(id: "123", name: "Orange and Blue Trousers", imageName: "DummyProduct", rentalPrice: "Rp 20.000 /day", categoryId: 1)
+//
+//    static var previews: some View {
+//        NavigationView {
+//            RequestView(item: sampleItem)
+//        }
+//        .preferredColorScheme(.light)
+//
+//        NavigationView {
+//            RequestView(item: sampleItem)
+//        }
+//        .preferredColorScheme(.dark)
+//    }
+//}
