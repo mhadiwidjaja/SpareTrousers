@@ -6,151 +6,176 @@
 //
 
 
+
+
 import SwiftUI
+
+
+//TODO: Maybe move this someplace else
+// Assuming Review struct is defined as:
+struct Review: Identifiable {
+    let id = UUID()
+    let reviewerName: String
+    let reviewText: String
+    let rating: Int
+}
+
+
 
 // MARK: - Main View
 struct ItemDetailView: View {
-    // State for the current page in the image carousel
+    // The item to display, passed from HomeView
+    let item: DisplayItem
+
     @State private var currentPage = 0
-    // Placeholder for image names. Replace with your actual image assets.
-    let productImages = ["placeholder_image_1", "placeholder_image_2", "placeholder_image_3"]
-    // Placeholder for review data
+    // State to control navigation to RequestView (optional if NavigationLink is direct)
+    // @State private var isShowingRequestView = false // Can be removed if BorrowButton is a direct NavigationLink
+
+    // Use item.imageName as the primary, then placeholders or other images from item
+    var productImages: [String] {
+        // In a real app, DisplayItem might have an array of image names.
+        // For now, using the main image and then the placeholders from your example.
+        var images = [item.imageName] // Primary image
+        images.append(contentsOf: ["SpareTrousers", "DummyProduct"]) // Additional example images
+        return images.filter { !$0.isEmpty } // Ensure no empty strings
+    }
+
+    // Sample reviews (could also come from 'item' if it had review details)
     let sampleReviews = [
-        Review(reviewerName: "Jimbo", reviewText: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque aliquam id mauris interdum egestas.", rating: 4)
+        Review(reviewerName: "Jimbo",
+               reviewText: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque aliquam id mauris interdum egestas.",
+               rating: 4)
     ]
 
+    private let infoCornerRadius: CGFloat = 18
+
     var body: some View {
-        NavigationView { // Added NavigationView for potential navigation bar and back button functionality
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    // MARK: - Image Carousel
-                    ImageCarouselView(images: productImages, currentPage: $currentPage)
-                        .frame(height: 300) // Adjust height as needed
+        ZStack(alignment: .bottom) {
+            Color.appOffWhite.edgesIgnoringSafeArea(.all)
 
-                    // MARK: - Product Information
+            Color.appWhite
+                .offset(y: 290) // 350 header height − 60 overlap
+                .edgesIgnoringSafeArea(.bottom)
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    ZStack(alignment: .bottom) {
+                        Color.appBlue // Use your app's blue
+                            .frame(height: 350)
+                            .clipShape(
+                                RoundedCorner(radius: infoCornerRadius,
+                                              corners: [.bottomLeft, .bottomRight])
+                            )
+                            .edgesIgnoringSafeArea(.top)
+
+                        // ImageCarouselView using the productImages derived from 'item'
+                        ImageCarouselViewFromUser(images: productImages,
+                                          currentPage: $currentPage)
+                           .frame(width: UIScreen.main.bounds.width * 0.8,
+                                  height: 250)
+                           .padding(.bottom, 20)
+                    }
+                    .offset(y: -86) // This offset might need adjustment if header height changes
+
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Orange and Blue Trousers")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(Color(UIColor.label)) // Adapts to light/dark mode
+                        Text(item.name) // Use item's name
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.appBlack)
 
-                        HStack(spacing: 16) {
-                            RatingView(rating: 4.8, reviewCount: 69)
-                            AvailabilityView(isAvailable: true)
+                        HStack(spacing: 12) {
+                            RatingViewFromUser(rating: 4.8, reviewCount: 69) // Placeholder rating
+                            AvailabilityViewFromUser(isAvailable: true)      // Placeholder availability
                             Spacer()
                         }
 
-                        Text("Rp 20.000 /day")
-                            .font(.title2)
+                        Text(item.rentalPrice) // Use item's price
+                            .font(.title3)
                             .fontWeight(.semibold)
-                            .foregroundColor(Color.black) // Using orange for price as in the image
+                            .foregroundColor(.appBlack)
 
-                    }
-                    .padding()
-
-                    // MARK: - Description Section
-                    SectionView(title: "Description") {
-                        Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque aliquam id mauris interdum egestas. In vitae ipsum ac dui facilisis tristique ac quis ligula. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque suscipit et turpis vel placerat. Aliquam non lectus efficitur, sagittis quam id, pulvinar mi.")
-                            .font(.body)
-                            .foregroundColor(Color(UIColor.secondaryLabel))
-                            .lineSpacing(5)
-                    }
-                    .padding(.horizontal)
-
-                    // MARK: - Reviews Section
-                    SectionView(title: "Reviews", showAddButton: true) {
-                        if sampleReviews.isEmpty {
-                            Text("No reviews yet.")
+                        SectionViewFromUser(title: "Description") {
+                            // Placeholder description. Ideally, this would come from 'item.description'
+                            Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque aliquam id mauris interdum egestas. In vitae ipsum ac dui facilisis tristique ac quis ligula. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque suscipit et turpis vel placerat. Aliquam non lectus efficitur, sagittis quam id, pulvinar mi.")
                                 .font(.body)
-                                .foregroundColor(Color(UIColor.secondaryLabel))
-                        } else {
-                            ForEach(sampleReviews) { review in
-                                ReviewCardView(review: review)
+                                .foregroundColor(.appBlack.opacity(0.7))
+                                .lineSpacing(5)
+                        }
+
+                        SectionViewFromUser(title: "Reviews", showAddButton: true) {
+                            if sampleReviews.isEmpty {
+                                Text("No reviews yet.")
+                                    .font(.body)
+                                    .foregroundColor(.appBlack.opacity(0.7))
+                            } else {
+                                ForEach(sampleReviews) { review in
+                                    ReviewCardViewFromUser(review: review)
+                                }
                             }
                         }
+                        Spacer(minLength: 120) // Space for the borrow button
                     }
-                    .padding(.horizontal)
-                    .padding(.top) // Add some top padding to separate from description
-
-                    Spacer(minLength: 20) // Add space before the button
+                    .padding()
+                    .background(Color.appWhite)
+                    .clipShape(
+                        RoundedCorner(
+                            radius: infoCornerRadius,
+                            corners: [.topLeft, .topRight]
+                        )
+                    )
+                    .offset(y: -60) // This offset pulls the white panel up
                 }
             }
-            .navigationBarHidden(true) // Hide the default navigation bar as we have a custom back button
-            .overlay( // Overlay for the custom back button
-                CustomBackButton(),
-                alignment: .topLeading
-            )
-            .safeAreaInset(edge: .bottom) { // Ensure button is above safe area
-                 BorrowButton()
-                    .padding()
-                    .background(Color(UIColor.systemBackground)) // Match background
-            }
-            .edgesIgnoringSafeArea(.top) // Allow image carousel to go to the top edge
+            // Navigation is handled by the NavigationView in HomeView
+            // .navigationBarTitleDisplayMode(.inline) // Already set if pushed by NavLink
+            // .navigationTitle(item.name) // Already set if pushed by NavLink
+
+            // Borrow Button - Modified to navigate
+            // It's placed in ZStack to overlay on ScrollView content
+            BorrowButtonModified(item: item) // Pass the item to BorrowButton
+                .padding(.horizontal)
+                .padding(.bottom, UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 0 > 0 ? 0 : 16) // Adjust padding if home indicator is present
         }
-        .navigationViewStyle(StackNavigationViewStyle()) // Recommended for fixing some layout issues
+        // ItemDetailView itself should not ignore safe area at top if it has a nav bar from parent
+        // .edgesIgnoringSafeArea(.top) // Re-evaluate this; if part of NavStack, top is usually handled
+        // The ZStack with Color.appBlue already handles .edgesIgnoringSafeArea(.top) for the blue header part
+        .navigationTitle(item.name) // Set title for the navigation bar
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
-// MARK: - Subviews
-
-// Custom Back Button
-struct CustomBackButton: View {
-    @Environment(\.presentationMode) var presentationMode
-
-    var body: some View {
-        Button(action: {
-            presentationMode.wrappedValue.dismiss()
-        }) {
-            Image(systemName: "chevron.left")
-                .font(.title2)
-                .foregroundColor(.white) // White color for better visibility on image
-                .padding()
-                .background(Color.black.opacity(0.5)) // Semi-transparent background
-                .clipShape(Circle())
-        }
-        .padding(.leading)
-        .padding(.top, UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0) // Adjust for status bar
-    }
-}
+// MARK: - Subviews (Using user's provided versions, renamed for clarity in this merge)
 
 
-// Image Carousel
-struct ImageCarouselView: View {
+
+struct ImageCarouselViewFromUser: View {
     let images: [String]
     @Binding var currentPage: Int
 
     var body: some View {
-        GeometryReader { geometry in
-            TabView(selection: $currentPage) {
-                ForEach(0..<images.count, id: \.self) { index in
-                    // In a real app, you'd load images from assets or URLs
-                    // Using SF Symbols or colored rectangles as placeholders
-                    ZStack {
-                        if UIImage(named: images[index]) != nil {
-                             Image(images[index])
-                                .resizable()
-                                .scaledToFill() // Changed to scaledToFill to mimic the example
-                                .frame(width: geometry.size.width, height: geometry.size.height)
-                                .clipped() // Clip to bounds
-                        } else {
-                            // Fallback placeholder if image is not found
-                            Rectangle()
-                                .fill(index % 2 == 0 ? Color.blue.opacity(0.7) : Color.blue.opacity(0.7))
-                                .overlay(Text("Image \(index + 1)").foregroundColor(.white))
-                        }
-                    }
-                    .tag(index)
+        TabView(selection: $currentPage) {
+            ForEach(0..<images.count, id: \.self) { index in
+                // Attempt to load image, provide fallback
+                if UIImage(named: images[index]) != nil {
+                    Image(images[index])
+                        .resizable()
+                        .scaledToFit() // Or .scaledToFill() depending on desired effect
+                        .cornerRadius(12)
+                        .tag(index)
+                } else {
+                    // Fallback view if image is not found
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .cornerRadius(12)
+                        .overlay(Text("Image\nNot Found").multilineTextAlignment(.center).foregroundColor(.white))
+                        .tag(index)
                 }
             }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
-            .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
-            .frame(width: geometry.size.width, height: geometry.size.height)
         }
+        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always)) // Or .automatic
     }
 }
 
-// Rating View
-struct RatingView: View {
+struct RatingViewFromUser: View {
     let rating: Double
     let reviewCount: Int
 
@@ -160,19 +185,20 @@ struct RatingView: View {
                 .foregroundColor(.yellow)
             Text(String(format: "%.1f", rating))
                 .fontWeight(.semibold)
-            Text("(\(reviewCount) reviews)")
+            Text("\(reviewCount) reviews") // Corrected from "69 reviews" to use reviewCount
                 .font(.caption)
-                .foregroundColor(Color(UIColor.secondaryLabel))
+                .foregroundColor(.gray)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
         .padding(.horizontal, 12)
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(20)
+        .background(Color.white) // Changed from secondarySystemBackground
+        .cornerRadius(12)
+        .overlay(RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1))
     }
 }
 
-// Availability View
-struct AvailabilityView: View {
+struct AvailabilityViewFromUser: View {
     let isAvailable: Bool
 
     var body: some View {
@@ -184,35 +210,29 @@ struct AvailabilityView: View {
                 .font(.caption)
                 .fontWeight(.medium)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
         .padding(.horizontal, 12)
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(20)
+        .background(Color.white) // Changed from secondarySystemBackground
+        .cornerRadius(12)
+        .overlay(RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1))
     }
 }
 
-// Generic Section View
-struct SectionView<Content: View>: View {
+struct SectionViewFromUser<Content: View>: View {
     let title: String
-    var showAddButton: Bool = false
+    var showAddButton: Bool = false // Not used in user's new version of SectionView, but kept for consistency
     @ViewBuilder let content: Content
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(title)
-                    .font(.title3)
-                    .fontWeight(.semibold)
+                    .font(.headline) // User's version uses .headline
                 Spacer()
                 if showAddButton {
-                    Button(action: {
-                        // Action for adding a review or other item
-                        print("\(title) add button tapped")
-                    }) {
-                        Image(systemName: "plus")
-                            .font(.title3)
-                            .foregroundColor(.accentColor)
-                    }
+                    Image(systemName: "plus") // User's version uses Image directly
+                        .font(.headline)
                 }
             }
             content
@@ -220,63 +240,52 @@ struct SectionView<Content: View>: View {
     }
 }
 
-// Review Data Model
-struct Review: Identifiable {
-    let id = UUID()
-    let reviewerName: String
-    let reviewText: String
-    let rating: Int // Rating out of 5
-}
-
-// Review Card View
-struct ReviewCardView: View {
+// ReviewCardView from user's code
+struct ReviewCardViewFromUser: View {
     let review: Review
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("From \(review.reviewerName)")
-                    .font(.headline)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
                 Spacer()
                 HStack(spacing: 2) {
                     ForEach(1...5, id: \.self) { star in
                         Image(systemName: star <= review.rating ? "star.fill" : "star")
                             .foregroundColor(.yellow)
-                            .font(.caption)
+                            .font(.caption2)
                     }
                 }
             }
             Text(review.reviewText)
                 .font(.subheadline)
-                .foregroundColor(Color(UIColor.secondaryLabel))
-                .lineLimit(3) // Limit lines to keep it concise
+                .foregroundColor(.gray)
+                .lineLimit(3)
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-        )
+        .background(Color.white) // Changed from secondarySystemBackground
+        .cornerRadius(12)
+        .overlay(RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1))
     }
 }
 
-// Borrow Button
-struct BorrowButton: View {
+// Borrow Button - Modified to be a NavigationLink
+struct BorrowButtonModified: View {
+    let item: DisplayItem // Pass the item to navigate with
+
     var body: some View {
-        Button(action: {
-            // Action for borrowing the item
-            print("Borrow button tapped")
-        }) {
+        NavigationLink(destination: RequestView(item: item)) { // RequestView is from the other immersive
             Text("Borrow")
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
-                .padding(.vertical, 15)
+                .padding(.vertical, 16) // User's version uses 16
                 .frame(maxWidth: .infinity)
-                .background(Color.orange) // Using orange as in the image
+                .background(Color.orange) // Assuming .appOrange or direct .orange
                 .cornerRadius(12)
-                .shadow(color: .gray.opacity(0.5), radius: 5, x: 0, y: 5)
         }
     }
 }
@@ -284,15 +293,19 @@ struct BorrowButton: View {
 
 // MARK: - Preview
 struct ItemDetailView_Previews: PreviewProvider {
-    static var previews: some View {
-        // You'll need to add some placeholder images to your Assets.xcassets
-        // with names "placeholder_image_1", "placeholder_image_2", "placeholder_image_3"
-        // for the preview to work correctly with images.
-        // If you don't have these, the carousel will show colored rectangles.
-        ItemDetailView()
-            .preferredColorScheme(.light) // Preview in light mode
+    // Sample item for preview. Ensure "DummyProduct" exists in your Assets.
+    static var sampleItem = DisplayItem(name: "Orange and Blue Trousers", imageName: "DummyProduct", rentalPrice: "Rp 20.000 /day")
 
-        ItemDetailView()
-            .preferredColorScheme(.dark) // Preview in dark mode
+    static var previews: some View {
+        // Wrap in NavigationView for previewing navigation behavior
+        NavigationView {
+            ItemDetailView(item: sampleItem)
+        }
+        .preferredColorScheme(.light) // User's preview was light only, added dark for completeness
+        
+        NavigationView {
+            ItemDetailView(item: sampleItem)
+        }
+        .preferredColorScheme(.dark)
     }
 }
