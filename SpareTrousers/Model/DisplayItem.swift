@@ -19,4 +19,5 @@ struct DisplayItem: Identifiable {
     // Add other fields like isAvailable, ownerUid if needed directly in DisplayItem for UI
     let isAvailable: Bool? // Optional, as it might not always be present or needed for display
     let ownerUid: String?  // Optional
+    let status: Bool = true
 }
