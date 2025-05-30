@@ -14,5 +14,5 @@ struct DisplayItem: Identifiable {
     let imageName: String
     let rentalPrice: String
     let categoryId: Int
-    let status: Bool
+    let status: Bool = true
 }
