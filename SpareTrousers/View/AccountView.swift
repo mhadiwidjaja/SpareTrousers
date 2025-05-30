@@ -71,9 +71,11 @@ struct AccountView: View {
                         .cornerRadius(10)
                         .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 1)
                         .padding(.horizontal)
+
+                        Spacer().frame(height: 16)
                     }
                 }
-                .frame(height: 306)
+                .frame(height: 260)
                 .clipShape(
                     RoundedCorner(radius: topSectionCornerRadius,
                                   corners: [.bottomLeft, .bottomRight])
@@ -87,41 +89,41 @@ struct AccountView: View {
                             RoundedCorner(radius: topSectionCornerRadius,
                                           corners: [.topLeft, .topRight])
                         )
-                    
+
                     VStack(spacing: 0) {
                         // Account Settings row
-                        
                         Button {
                             // navigate to settings
                         } label: {
                             HStack {
                                 Image(systemName: "gearshape.fill")
-                                    .font(.largeTitle)
+                                    .font(.title2)
                                     .foregroundColor(.appBlack)
-                                    .frame(width: 64, height: 64)
+                                    .frame(width: 32, height: 32)
                                 Text("Account Settings")
-                                    .font(.title.bold())
+                                    .font(.body)
                                     .foregroundColor(.appBlack)
                                 Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.appBlack)
                             }
                             .padding()
                         }
 
                         Divider()
                             .padding(.leading, 52)
-                            .padding(.trailing, 52)
 
                         // Logout row
                         Button {
                             // perform logout
                         } label: {
                             HStack {
-                                Image(systemName: "rectangle.portrait.and.arrow.right.fill")
-                                    .font(.largeTitle)
+                                Image(systemName: "rectangle.porch.arrow.right")
+                                    .font(.title2)
                                     .foregroundColor(.red)
-                                    .frame(width: 64, height: 64)
+                                    .frame(width: 32, height: 32)
                                 Text("Logout")
-                                    .font(.title.bold())
+                                    .font(.body)
                                     .foregroundColor(.red)
                                 Spacer()
                             }
