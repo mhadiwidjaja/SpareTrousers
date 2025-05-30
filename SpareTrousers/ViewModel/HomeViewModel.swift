@@ -537,7 +537,7 @@ class HomeViewModel: ObservableObject {
     func isAnyFilterActive() -> Bool { selectedCategoryId != nil || (isSearchActive && !searchText.isEmpty) }
     func calculateOverlapHeight() -> CGFloat { 40 }
 
-    func addItemToFirebase(name: String, localCategory: CategoryItem, price: String, ownerUid: String, imageName: String = "DummyProduct") {
+    func addItemToFirebase(name: String, description: String, localCategory: CategoryItem, price: String, ownerUid: String, imageName: String = "DummyProduct") {
         guard categories.contains(where: { $0.id == localCategory.id }) else {
             self.errorMessage = "Invalid category provided for new item."; print(self.errorMessage!); return
         }
@@ -545,7 +545,7 @@ class HomeViewModel: ObservableObject {
             self.errorMessage = "Could not generate item ID."; print(self.errorMessage ?? "Error: Could not generate item ID"); return
         }
         let itemData: [String: Any] = [
-            "name": name, "description": "A fantastic item available for rent!", "imageName": imageName,
+            "name": name, "description": description, "imageName": imageName,
             "rentalPrice": price, "categoryId": localCategory.id, "ownerUid": ownerUid,
             "isAvailable": true, "dateListed": ISO8601DateFormatter().string(from: Date())
         ]
