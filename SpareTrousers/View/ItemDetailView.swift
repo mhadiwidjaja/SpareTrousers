@@ -294,7 +294,7 @@ struct BorrowButtonModified: View {
 // MARK: - Preview
 struct ItemDetailView_Previews: PreviewProvider {
     // Sample item for preview. Ensure "DummyProduct" exists in your Assets.
-    static var sampleItem = DisplayItem(name: "Orange and Blue Trousers", imageName: "DummyProduct", rentalPrice: "Rp 20.000 /day")
+    static var sampleItem = DisplayItem(id: "123", name: "Orange and Blue Trousers", imageName: "DummyProduct", rentalPrice: "Rp 20.000 /day", categoryId: 1)
 
     static var previews: some View {
         // Wrap in NavigationView for previewing navigation behavior

@@ -182,10 +182,10 @@ struct RequestView: View {
 
 // MARK: - Preview
 struct RequestView_Previews: PreviewProvider {
-    static var sampleItem = DisplayItem(name: "Orange and Blue Trousers", imageName: "DummyProduct", rentalPrice: "Rp 20.000 /day") // Ensure "DummyProduct" exists in assets for preview
+    static var sampleItem = DisplayItem(id: "123", name: "Orange and Blue Trousers", imageName: "DummyProduct", rentalPrice: "Rp 20.000 /day", categoryId: 1)
 
     static var previews: some View {
-        NavigationView { // Wrap in NavigationView for previewing navigation bar elements
+        NavigationView {
             RequestView(item: sampleItem)
         }
         .preferredColorScheme(.light)

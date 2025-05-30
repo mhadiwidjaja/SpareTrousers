@@ -17,15 +17,37 @@ struct SpareTrousersApp: App {
                 print("  Font: \(name)")
             }
         }
-            FirebaseApp.configure() // Initialize Firebase when the app starts
+        FirebaseApp.configure()
+        print("Firebase configured!")
+
+        let defaults = UserDefaults.standard
+        if !defaults
+            .bool(forKey: "hasSeededFirebaseDummyItems_IntCategories_v1") {
+            print(
+                "--- Initiating Firebase dummy items seeding (Int Categories, one-time) ---"
+            )
+            let seedingService = SeedingService()
+            seedingService.seedDummyItemsToFirebase()
+            defaults
+                .set(
+                    true,
+                    forKey: "hasSeededFirebaseDummyItems_IntCategories_v1"
+                )
+            print("--- Firebase dummy items seeding attempt completed ---")
+        } else {
+            print(
+                "--- Firebase dummy items seeding already performed, skipping. ---"
+            )
         }
+    }
+    
     var body: some Scene {
         WindowGroup {
             if viewModel.userSession != nil {
-                            HomeView()
-                        } else {
-                            LoginRegisterView(viewModel: viewModel)
-                        }
+                HomeView()
+            } else {
+                LoginRegisterView(viewModel: viewModel)
+            }
         }
     }
 }

@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct CategoryItem: Identifiable {
-    let id = UUID()
+    let id: Int
     let name: String
     let iconName: String
     let color: Color
