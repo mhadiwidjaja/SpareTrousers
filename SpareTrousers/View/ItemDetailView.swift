@@ -61,7 +61,7 @@ struct ItemDetailView: View {
                 VStack(spacing: 0) {
                     ZStack(alignment: .bottom) {
                         Color.appBlue // Use your app's blue
-                            .frame(height: 350)
+                            .frame(height: 380)
                             .clipShape(
                                 RoundedCorner(radius: infoCornerRadius,
                                               corners: [.bottomLeft, .bottomRight])
@@ -75,7 +75,7 @@ struct ItemDetailView: View {
                                   height: 250)
                            .padding(.bottom, 20)
                     }
-                    .offset(y: -86) // This offset might need adjustment if header height changes
+                    .offset(y: -106) // This offset might need adjustment if header height changes
 
                     VStack(alignment: .leading, spacing: 16) {
                         Text(item.name) // Use item's name
