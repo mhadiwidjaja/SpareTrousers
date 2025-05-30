@@ -13,29 +13,38 @@ struct HomeView: View {
     let topSectionCornerRadius: CGFloat = 18
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            // Pale background only shows on non-home tabs
-            Color.appOffWhite
+        ZStack(alignment: .bottom) {            Color.appOffWhite
                 .edgesIgnoringSafeArea(.all)
 
             VStack(spacing: 0) {
                 Group {
                     switch viewModel.selectedTab {
                     case .home:
-                        // Home: full-screen white under header + content
                         VStack(spacing: 0) {
                             TopNavBar(
                                 searchText: $viewModel.searchText,
                                 onSearchTapped: viewModel.performSearch
                             )
-                            .ignoresSafeArea(edges: .top)    // extend under notch
+                            .ignoresSafeArea(
+                                edges: .top
+                            )
 
                             ScrollView {
                                 VStack(spacing: 0) {
-                                    Spacer().frame(height: topSectionCornerRadius)
+                                    Spacer()
+                                        .frame(height: topSectionCornerRadius)
                                     VStack(alignment: .leading, spacing: 20) {
-                                        CategoriesSection(categories: viewModel.categories)
-                                        NearYouSection(items: viewModel.nearYouItems)
+                                        CategoriesSection(
+                                            categories: viewModel.categories
+                                        )
+                                        NearYouSection(
+                                            items: viewModel.displayedNearYouItems,
+                                            currentSearchText: viewModel.searchText,
+                                            isSearchActive: viewModel.isSearchActive,
+                                            onClearSearch: {
+                                                viewModel.clearSearch()
+                                            }
+                                        )
                                         Spacer(minLength: 80)
                                     }
                                     .padding(.horizontal)
@@ -80,7 +89,11 @@ struct RoundedCorner: Shape {
     var corners: UIRectCorner = .allCorners
 
     func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
         return Path(path.cgPath)
     }
 }
@@ -131,7 +144,12 @@ struct TopNavBar: View {
         }
         .padding(.bottom, 10)
         .background(Color.appBlue.edgesIgnoringSafeArea(.top))
-        .clipShape(RoundedCorner(radius: bottomCornerRadius, corners: [.bottomLeft, .bottomRight]))
+        .clipShape(
+            RoundedCorner(
+                radius: bottomCornerRadius,
+                corners: [.bottomLeft, .bottomRight]
+            )
+        )
     }
 }
 
@@ -180,6 +198,10 @@ struct CategoryView: View {
 
 struct NearYouSection: View {
     let items: [DisplayItem]
+    let currentSearchText: String
+    let isSearchActive: Bool
+    let onClearSearch: () -> Void
+    
     let columns: [GridItem] = [
         GridItem(.flexible(), spacing: 16),
         GridItem(.flexible(), spacing: 16)
@@ -187,15 +209,42 @@ struct NearYouSection: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            Text("Near You")
+            HStack {
+                Text(
+                    isSearchActive ? "\"\(currentSearchText)\"" : "Near You"
+                )
                 .font(.custom("MarkerFelt-Wide", size: 24))
-                .foregroundColor(.appBlack)
-                .padding(.leading, 5)
+                .foregroundColor(Color.appBlack)
+                    
+                Spacer()
+                    
+                if isSearchActive {
+                    Button(action: onClearSearch) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(
+                                Color.appOffGray
+                            )
+                    }
+                }
+            }
+            .padding(.leading, 5)
+            .padding(.trailing, 5)
 
-
-            LazyVGrid(columns: columns, spacing: 16) {
-                ForEach(items) { item in
-                    ItemCardView(item: item)
+            if items.isEmpty {
+                Text(
+                    isSearchActive ? "No items match \"\(currentSearchText)\"." : "No items available near you currently."
+                )
+                .foregroundColor(Color.appOffGray)
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .center)
+            } else {
+                LazyVGrid(columns: columns, spacing: 16) {
+                    ForEach(items) { item in
+                        ItemCardView(
+                            item: item
+                        )
+                    }
                 }
             }
         }
