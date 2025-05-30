@@ -7,26 +7,42 @@
 
 import SwiftUI
 
+// MARK: - AccountView
 struct AccountView: View {
-    let topSectionCornerRadius: CGFloat = 18
+    @EnvironmentObject var authViewModel: AuthViewModel
+    // State to control navigation to LoginRegisterView
+    @State private var shouldNavigateToLoginRegister = false
 
-    // placeholder user info
-    let email = "nahidgraduate.ai@gmail.com"
-    let address = "Local Thunk, Balatro"
+    let topSectionCornerRadius: CGFloat = 18
+    let email = "nahidgraduate.ai@gmail.com" // Placeholder
+    let address = "Local Thunk, Balatro"     // Placeholder
 
     var body: some View {
         GeometryReader { geo in
             VStack(spacing: 0) {
+                // NavigationLink that will be triggered by shouldNavigateToLoginRegister
+                // It's "hidden" because its label is EmptyView and activation is programmatic.
+                // This link must be within the NavigationView provided by HomeView.
+                NavigationLink(
+                    destination: LoginRegisterView(viewModel: authViewModel),
+                    isActive: $shouldNavigateToLoginRegister
+                ) {
+                    EmptyView()
+                }
+
                 // ───── BLUE HEADER + PROFILE CARD ─────
                 ZStack(alignment: .top) {
-                    // Blue background
                     Color.appBlue
                         .edgesIgnoringSafeArea(.top)
 
                     VStack(spacing: 12) {
-                        Spacer().frame(height: 80)
+                        Spacer().frame(height: UIApplication.shared.connectedScenes
+                            .filter { $0.activationState == .foregroundActive }
+                            .compactMap { $0 as? UIWindowScene }
+                            .first?.windows
+                            .filter { $0.isKeyWindow }
+                            .first?.safeAreaInsets.top ?? 0 + 20)
 
-                        // Title + logo
                         HStack {
                             Text("Account")
                                 .font(.custom("MarkerFelt-Wide", size: 36))
@@ -44,7 +60,6 @@ struct AccountView: View {
                         }
                         .padding(.horizontal)
 
-                        // Email/Address card inside header
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Text("Email")
@@ -52,7 +67,7 @@ struct AccountView: View {
                                     .foregroundColor(.appBlack)
                                 Spacer()
                             }
-                            Text(email)
+                            Text(authViewModel.userSession?.email ?? email)
                                 .font(.subheadline)
                                 .foregroundColor(.appBlack)
 
@@ -66,7 +81,6 @@ struct AccountView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.appBlack)
                         }
-
                         .padding()
                         .background(Color.appWhite)
                         .cornerRadius(10)
@@ -90,10 +104,8 @@ struct AccountView: View {
                         )
                     
                     VStack(spacing: 0) {
-                        // Account Settings row
-                        
                         Button {
-                            // navigate to settings
+                            print("Account Settings tapped")
                         } label: {
                             HStack {
                                 Image(systemName: "gearshape.fill")
@@ -112,9 +124,11 @@ struct AccountView: View {
                             .padding(.leading, 52)
                             .padding(.trailing, 52)
 
-                        // Logout row
                         Button {
-                            // perform logout
+                            authViewModel.logout()
+                            print("Logout button tapped, attempting to navigate.")
+                            // Set the state to true to trigger navigation
+                            shouldNavigateToLoginRegister = true
                         } label: {
                             HStack {
                                 Image(systemName: "rectangle.portrait.and.arrow.right.fill")
@@ -138,19 +152,27 @@ struct AccountView: View {
                     .padding(.horizontal)
                     .padding(.top, 24)
                 }
-
                 .frame(width: geo.size.width,
                        height: geo.size.height + 86 - 260 + 16)
                 .ignoresSafeArea(edges: .bottom)
                 .offset(y: -68)
             }
             .background(Color.appOffWhite.edgesIgnoringSafeArea(.all))
+            // The .navigationTitle for AccountView itself is usually set by the
+            // TabView or whatever presents it, or can be set here if it's the top-level view in this tab.
+            // .navigationTitle("Account") // Uncomment if needed
+            // .navigationBarHidden(true) // Typically, if part of HomeView's tab structure, HomeView handles nav bar visibility
         }
     }
 }
 
+// MARK: - Preview
 struct AccountView_Previews: PreviewProvider {
     static var previews: some View {
-        AccountView()
+        // Wrap in NavigationView for previewing navigation behavior
+        NavigationView {
+            AccountView()
+                .environmentObject(AuthViewModel()) // Provide AuthViewModel for the preview
+        }
     }
 }
