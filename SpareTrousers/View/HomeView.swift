@@ -61,7 +61,7 @@ struct HomeView: View {
 
         case .myRentals:
             // Instantiate MyRentalsView and pass the homeViewModel
-            MyRentalsView(homeViewModel: homeViewModel) // MODIFIED HERE
+            MyRentalsView(homeViewModel: homeViewModel, authViewModel: authViewModel) // MODIFIED HERE
 
         case .inbox:
             InboxView()

@@ -4,22 +4,19 @@ import SwiftUI
 import FirebaseAuth
 
 struct MyRentalsView: View {
-    // HomeViewModel is still needed for AddItemsView context (passed via environment)
-    // and to initialize MyRentalViewModel.
-    @EnvironmentObject private var homeVM_env: HomeViewModel // Renamed to avoid conflict if needed, though initializer takes precedence.
-                                                          // This is primarily for the AddItemsView sheet.
-
-    // New StateObject for MyRentalViewModel, initialized via the init method.
+    @EnvironmentObject private var homeVM_env: HomeViewModel
+    @EnvironmentObject private var authVM_env: AuthViewModel
     @StateObject private var myRentalVM: MyRentalViewModel
-
     @State private var isPresentingAddItem = false
-
-    // corner radius for the white content
     let topSectionCornerRadius: CGFloat = 18
     
-    // Initializer to set up MyRentalViewModel with HomeViewModel
-    init(homeViewModel: HomeViewModel) { // This initializer is called by HomeView
-        _myRentalVM = StateObject(wrappedValue: MyRentalViewModel(homeViewModel: homeViewModel))
+    init(homeViewModel: HomeViewModel, authViewModel: AuthViewModel) {
+        _myRentalVM = StateObject(
+            wrappedValue: MyRentalViewModel(
+                homeViewModel: homeViewModel,
+                authViewModel: authViewModel
+            )
+        )
     }
 
     var body: some View {
@@ -64,7 +61,6 @@ struct MyRentalsView: View {
                         )
 
                     VStack(spacing: 16) {
-                        // My Borrowing (unchanged as per request)
                         Text("My Borrowing")
                             .font(.custom("MarkerFelt-Wide", size: 24))
                             .foregroundColor(.appBlack)
@@ -72,16 +68,46 @@ struct MyRentalsView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
 
                         ScrollView {
-                            VStack(spacing: 2) {
-                                ForEach(0..<5) { _ in RentalRow() } // Placeholder for borrowing
+                            if myRentalVM.isLoading && myRentalVM.myBorrowedEntries.isEmpty {
+                                ProgressView("Loading borrowed items...")
+                                    .padding()
+                            } else if let errorMessage = myRentalVM.errorMessage {
+                                Text("Error: \(errorMessage)")
+                                    .foregroundColor(.red)
+                                    .padding()
+                            } else if myRentalVM.myBorrowedEntries.isEmpty {
+                                Text(
+                                    "You are not currently borrowing any items."
+                                )
+                                .foregroundColor(.appOffGray)
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .center)
+                            } else {
+                                VStack(spacing: 2) {
+                                    // Updated ForEach to pass lenderDisplayName
+                                    ForEach(
+                                        myRentalVM.myBorrowedEntries,
+                                        id: \.item.id
+                                    ) { entry in
+                                        NavigationLink(
+                                            destination: ItemDetailView(
+                                                item: entry.item
+                                            )
+                                        ) {
+                                            RentalRow(item: entry.item,
+                                                      transaction: entry.transaction,
+                                                      lenderDisplayName: entry.lenderDisplayName, // Pass display name
+                                                      isBorrowing: true)
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal)
                             }
-                            .padding(.horizontal)
                         }
                         .frame(maxHeight: 250)
                         .background(Color.appWhite)
                         .cornerRadius(10)
 
-                        // My Lending - Updated
                         HStack {
                             Text("My Lending")
                                 .font(.custom("MarkerFelt-Wide", size: 24))
@@ -96,30 +122,37 @@ struct MyRentalsView: View {
                             }
                             .sheet(isPresented: $isPresentingAddItem) {
                                 AddItemsView()
-                                  .environmentObject(homeVM_env) // AddItemsView still uses HomeViewModel from environment
+                                    .environmentObject(
+                                        homeVM_env
+                                    )
                             }
                         }
                         .padding(.horizontal, 5)
 
                         ScrollView {
-                            // Use items from MyRentalViewModel
-                            if myRentalVM.myLendingItems.isEmpty {
-                                Text("You haven't listed any items for lending yet.")
-                                    .foregroundColor(.appOffGray)
-                                    .padding()
-                                    .frame(maxWidth: .infinity, alignment: .center)
+                            if myRentalVM.isLoading && myRentalVM.myLendingItems.isEmpty {
+                                ProgressView("Loading your items...")
+                            } else if myRentalVM.myLendingItems.isEmpty {
+                                Text(
+                                    "You haven't listed any items for lending yet."
+                                )
+                                .foregroundColor(.appOffGray)
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .center)
                             } else {
                                 VStack(spacing: 2) {
-                                    // --- MODIFICATION FOR NAVIGATION ---
                                     ForEach(myRentalVM.myLendingItems) { item in
-                                        NavigationLink(destination: OwnedItemDetailView(item: item)) { // Wrap RentalRow
-                                            RentalRow(item: item, isBorrowing: false)
+                                        NavigationLink(
+                                            destination: OwnedItemDetailView(
+                                                item: item
+                                            )
+                                        ) {
+                                            RentalRow(
+                                                item: item,
+                                                isBorrowing: false
+                                            )
                                         }
-                                        // To make it look less like a default blue link, you might consider
-                                        // .buttonStyle(PlainButtonStyle()) if the default styling is an issue,
-                                        // though often the row itself being tappable is fine.
                                     }
-                                    // --- END OF MODIFICATION ---
                                 }
                                 .padding(.horizontal)
                             }
@@ -143,7 +176,34 @@ struct MyRentalsView: View {
 
 struct RentalRow: View {
     var item: DisplayItem? = nil
+    var transaction: Transaction? = nil
+    var lenderDisplayName: String? = nil
     var isBorrowing: Bool = true
+    
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter
+    }
+    
+    private var isoDateFormatter: ISO8601DateFormatter {
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds, .withTimeZone]
+            return formatter
+        }
+
+    private func formatTransactionDate(_ dateString: String?) -> String {
+            guard let dateStr = dateString, let date = isoDateFormatter.date(from: dateStr) else {
+                let simplerFormatter = ISO8601DateFormatter()
+                simplerFormatter.formatOptions = [.withInternetDateTime, .withTimeZone]
+                if let simplerDateStr = dateString, let simplerDate = simplerFormatter.date(from: simplerDateStr) {
+                    return dateFormatter.string(from: simplerDate)
+                }
+                return "N/A"
+            }
+            return dateFormatter.string(from: date)
+        }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -160,12 +220,14 @@ struct RentalRow: View {
                     .foregroundColor(.appBlack)
 
                 if isBorrowing {
-                    Text("Lender: \(item?.ownerUid ?? "-")")
+                    Text("Lender: \(lenderDisplayName ?? item?.ownerUid ?? "-")")
                         .font(.subheadline)
                         .foregroundColor(.appOffGray)
-                    Text("Rented until: [Date Placeholder]") // Placeholder
-                        .font(.subheadline)
-                        .foregroundColor(.appOffGray)
+                    Text(
+                        "Rented until: \(formatTransactionDate(transaction?.endTime))"
+                    )
+                    .font(.subheadline)
+                    .foregroundColor(.appOffGray)
                 } else {
                     Text("Borrower: -")
                         .font(.subheadline)
@@ -177,18 +239,23 @@ struct RentalRow: View {
 
                 HStack(spacing: 4) {
                     Circle()
-                        .fill(isBorrowing ? Color.red : ((item?.isAvailable ?? false) ? Color.green : Color.gray))
+                        .fill(
+                            isBorrowing ? Color.red : (
+                                (
+                                    item?.isAvailable ?? false
+                                ) ? Color.green : Color.gray
+                            )
+                        )
                         .frame(width: 10, height: 10)
-                    
-                    // --- MODIFIED STATUS TEXT LOGIC TO FIX 'buildExpression' ERROR ---
                     if isBorrowing {
-                        Text("Status: Rent due today") // Placeholder for borrowing status
-                            .font(.caption2)
-                            .foregroundColor(.appBlack)
+                        Text(
+                            "Status: Rent due today"
+                        )
+                        .font(.caption2)
+                        .foregroundColor(.appBlack)
                     } else {
-                        // For "My Lending" items
                         if item?.isAvailable ?? false {
-                            Text("Status: Available") // User's requested text
+                            Text("Status: Available")
                                 .font(.caption2)
                                 .foregroundColor(.appBlack)
                         } else {
@@ -197,7 +264,6 @@ struct RentalRow: View {
                                 .foregroundColor(.appBlack)
                         }
                     }
-                    // --- END OF MODIFIED STATUS TEXT LOGIC ---
                 }
             }
 
@@ -217,14 +283,16 @@ struct RentalRow: View {
 
 struct MyRentalsView_Previews: PreviewProvider {
     static var previews: some View {
-        // Create a HomeViewModel instance for the preview
         let previewHomeVM = HomeViewModel()
-        // Optionally populate previewHomeVM.allFetchedItems with sample data if needed for thorough previewing
-        // e.g., previewHomeVM.allFetchedItems = [ ... some DisplayItems ... ]
-        // This allows MyRentalViewModel to filter something during the preview.
 
-        MyRentalsView(homeViewModel: previewHomeVM) // Pass it to the initializer
-            .environmentObject(previewHomeVM) // Provide it to the environment for AddItemsView sheet
-            .environmentObject(AuthViewModel()) // If any part of MyRentalsView or its children needs AuthViewModel
+        MyRentalsView(
+            homeViewModel: previewHomeVM, authViewModel: AuthViewModel()
+        )
+        .environmentObject(
+            previewHomeVM
+        )
+        .environmentObject(
+            AuthViewModel()
+        )
     }
 }
