@@ -220,4 +220,27 @@ class HomeViewModel: ObservableObject {
             }
         }
     }
+    
+    
+    func updateItemInFirebase(itemId: String, itemData: [String: Any], completion: @escaping (Bool, String?) -> Void) {
+        guard !itemId.isEmpty else {
+            completion(false, "Item ID is missing.")
+            return
+        }
+        
+        var dataToUpdate = itemData
+        // dataToUpdate["lastUpdated"] = ISO8601DateFormatter().string(from: Date()) // Example if you want to track updates
+        
+        dbRef.child("items").child(itemId).updateChildValues(dataToUpdate) { error, _ in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Error updating item \(itemId): \(error.localizedDescription)")
+                    completion(false, error.localizedDescription)
+                } else {
+                    print("Item \(itemId) updated successfully in Firebase.")
+                    completion(true, nil)
+                }
+            }
+        }
+    }
 }

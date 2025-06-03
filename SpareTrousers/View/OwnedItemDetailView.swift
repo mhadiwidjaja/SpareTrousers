@@ -1,29 +1,20 @@
-//
-//  OwnedItemDetailView.swift
-//  SpareTrousers
-//
-//  Created by student on 03/06/25.
-//
+// SpareTrousers/View/OwnedItemDetailView.swift
 
 import SwiftUI
 
-// Assuming Review struct is defined as in ItemDetailView or a shared location
-// If not shared, you might need to define it here or ensure it's accessible.
-// For this example, I'll assume 'Review' is accessible.
-// struct Review: Identifiable { ... } // (If needed, or ensure it's imported from shared model)
-
-struct OwnedItemDetailView: View { // Renamed from ItemDetailView
+struct OwnedItemDetailView: View {
     let item: DisplayItem
+    
     @State private var currentPage = 0
+    @State private var showingEditItemView = false
+    @EnvironmentObject var homeVM: HomeViewModel // To pass to EditItemsView
 
     var productImages: [String] {
         var images = [item.imageName]
-        // Ensure your placeholder image names are correct if used
         images.append(contentsOf: ["SpareTrousers", "DummyProduct"])
         return images.filter { !$0.isEmpty }
     }
 
-    // Sample reviews, same as in ItemDetailView
     let sampleReviews = [
         Review(reviewerName: "Jimbo",
                reviewText: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque aliquam id mauris interdum egestas.",
@@ -37,23 +28,19 @@ struct OwnedItemDetailView: View { // Renamed from ItemDetailView
             Color.appOffWhite.edgesIgnoringSafeArea(.all)
 
             Color.appWhite
-                .offset(y: 290) // Adjust if header height changes
+                .offset(y: 290)
                 .edgesIgnoringSafeArea(.bottom)
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
-                    // These subviews (ItemDetailHeaderView, ItemInfoPanelView, etc.) are assumed to be
-                    // the same as defined in/for ItemDetailView. If they were private to ItemDetailView,
-                    // they would need to be copied here as well or made reusable.
-                    // For this regeneration, I'm using the names as provided in your ItemDetailView.swift code.
-                    ItemDetailHeaderView( // Assumes this struct is accessible
+                    ItemDetailHeaderView(
                         productImages: productImages,
                         currentPage: $currentPage,
                         infoCornerRadius: infoCornerRadius
                     )
                     .offset(y: -86)
 
-                    ItemInfoPanelView( // Assumes this struct is accessible
+                    ItemInfoPanelView(
                         item: item,
                         sampleReviews: sampleReviews,
                         infoCornerRadius: infoCornerRadius
@@ -62,10 +49,8 @@ struct OwnedItemDetailView: View { // Renamed from ItemDetailView
                 }
             }
 
-            // MODIFIED BUTTON SECTION
             Button(action: {
-                // Action for Edit button - none for now as requested
-                print("Edit button tapped for item: \(item.name)")
+                showingEditItemView = true
             }) {
                 Text("Edit")
                     .font(.title2)
@@ -73,19 +58,21 @@ struct OwnedItemDetailView: View { // Renamed from ItemDetailView
                     .foregroundColor(.white)
                     .padding(.vertical, 16)
                     .frame(maxWidth: .infinity)
-                    .background(Color.appBlue) // Changed background color for distinction, e.g., .appBlue or .gray
+                    .background(Color.appBlue)
                     .cornerRadius(12)
             }
             .padding(.horizontal)
             .padding(.bottom, safeAreaBottomInset())
-            // END OF MODIFIED BUTTON SECTION
         }
-        .navigationTitle(item.name) // Keep navigation title
+        .navigationTitle(item.name)
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showingEditItemView) {
+            EditItemsView(item: item)
+                .environmentObject(homeVM)
+        }
     }
     
     private func safeAreaBottomInset() -> CGFloat {
-        // This helper function remains the same
         let scenes = UIApplication.shared.connectedScenes
         let windowScene = scenes.first as? UIWindowScene
         let window = windowScene?.windows.first
@@ -93,18 +80,35 @@ struct OwnedItemDetailView: View { // Renamed from ItemDetailView
     }
 }
 
-// IMPORTANT: The subviews like ItemDetailHeaderView, ItemInfoPanelView, ImageCarouselViewFromUser, etc.
-// are assumed to be accessible (e.g., defined in a shared place or also copied to this file if they were private to ItemDetailView.swift).
-// If they are defined within ItemDetailView.swift and not as top-level structs, you'll need to
-// extract them or duplicate them here. Your provided ItemDetailView.swift shows them as top-level structs.
+// Make sure ItemDetailHeaderView, ItemInfoPanelView, and Review are defined
+// or accessible in your project as they were in your original ItemDetailView.swift.
 
-// Preview for OwnedItemDetailView
-struct OwnedItemDetailView_Previews: PreviewProvider { // Renamed preview struct
-    static var sampleItem = DisplayItem(id: "123", name: "My Orange Trousers", imageName: "DummyProduct", rentalPrice: "Rp 20.000 /day", categoryId: 1, description: "These are my comfortable orange trousers.", isAvailable: true, ownerUid: "owner123")
+// For Preview
+struct OwnedItemDetailView_Previews: PreviewProvider {
+    static var sampleItem = DisplayItem(
+        id: "ownedPreviewID",
+        name: "My Orange Trousers",
+        imageName: "DummyProduct",
+        rentalPrice: "Rp 20.000 /day",
+        categoryId: 1,
+        description: "These are my comfortable orange trousers, ready for editing.",
+        isAvailable: true,
+        ownerUid: "owner123"
+    )
+    
+    static var mockHomeVM: HomeViewModel {
+        let vm = HomeViewModel()
+        vm.categories = [
+            CategoryItem(id: 1, name: "Fashion", iconName: "tshirt.fill", color: .blue),
+            CategoryItem(id: 2, name: "Cooking", iconName: "fork.knife.circle.fill", color: .orange)
+        ]
+        return vm
+    }
 
     static var previews: some View {
-        NavigationView { // Wrap in NavigationView for preview
-            OwnedItemDetailView(item: sampleItem) // Preview the new view
+        NavigationView {
+            OwnedItemDetailView(item: sampleItem)
+                .environmentObject(mockHomeVM)
         }.preferredColorScheme(.light)
     }
 }
