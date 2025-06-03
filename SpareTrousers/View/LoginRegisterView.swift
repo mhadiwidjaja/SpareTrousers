@@ -141,93 +141,21 @@ struct RegisterCard: View {
             VStack {
                 Spacer()
                 VStack(spacing: 0) {
-                    VStack(spacing: 16) {
-                        Spacer().frame(height: 24)
-                        Image("SpareTrousers")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 100, height: 100)
-                        VStack(spacing: -8) {
-                            Text("Create Account")
-                                .font(.custom("MarkerFelt-Wide", size: 24))
-                                .foregroundColor(.appWhite)
-                                .shadow(color: .appBlack, radius: 1)
-                                .shadow(color: .appBlack, radius: 1)
-                                .shadow(color: .appBlack, radius: 1)
-                                .shadow(color: .appBlack, radius: 1)
-                                .shadow(color: .appBlack, radius: 1)
-                            Text("Spare Trousers")
-                                .font(.custom("MarkerFelt-Wide", size: 40))
-                                .foregroundColor(.appWhite)
-                                .shadow(color: .appBlack, radius: 1)
-                                .shadow(color: .appBlack, radius: 1)
-                                .shadow(color: .appBlack, radius: 1)
-                                .shadow(color: .appBlack, radius: 1)
-                                .shadow(color: .appBlack, radius: 1)
-                        }
-                    }
-                    .padding(.bottom, 20)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.appBlue)
-
-                    VStack(spacing: 16) {
-                        TextField("Enter email", text: $email)
-                            .padding(.vertical, 20)
-                            .padding(.horizontal, 16)
-                            .background(Color.appWhite)
-                            .cornerRadius(10)
-                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.appBlack, lineWidth: 2))
-                            .autocapitalization(.none)
-                            .keyboardType(.emailAddress)
-
-                        SecureField("Enter password", text: $password)
-                            .padding(.vertical, 20)
-                            .padding(.horizontal, 16)
-                            .background(Color.appWhite)
-                            .cornerRadius(10)
-                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.appBlack, lineWidth: 2))
-
-                        TextField("Enter address", text: $address)
-                            .padding(.vertical, 20)
-                            .padding(.horizontal, 16)
-                            .background(Color.appWhite)
-                            .cornerRadius(10)
-                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.appBlack, lineWidth: 2))
-                            .autocapitalization(.words)
-
-
-                        HStack {
-                            Spacer()
-                            Text("Have an account?")
-                            Button("Login") { dismiss() }
-                                .foregroundColor(.appBlue)
-                        }
-
-                        Button {
-                            viewModel.register(email: email, password: password, address: address)
-                            dismiss()
-                        } label: {
-                            Text("REGISTER")
-                                .font(.custom("MarkerFelt-Wide", size: 48))
-                                .shadow(color: .appBlack, radius: 1)
-                                .shadow(color: .appBlack, radius: 1)
-                                .shadow(color: .appBlack, radius: 1)
-                                .shadow(color: .appBlack, radius: 1)
-                                .shadow(color: .appBlack, radius: 1)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 66)
-                                .background(Color.appBlue)
-                                .foregroundColor(.appWhite)
-                                .cornerRadius(10)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(20)
-                    .background(Color.appOrange)
+                    RegisterHeader()
+                    RegisterForm(
+                        email: $email,
+                        password: $password,
+                        address: $address,
+                        viewModel: viewModel,
+                        onDismiss: { dismiss()}
+                    )
                 }
                 .background(Color.appWhite)
                 .clipShape(RoundedRectangle(cornerRadius: 20))
-                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.appBlack, lineWidth: 4))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color.appBlack, lineWidth: 4)
+                )
                 .padding(24)
                 Spacer()
             }
@@ -242,6 +170,106 @@ struct RegisterCard: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+    }
+}
+    
+private struct RegisterHeader: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Spacer().frame(height: 24)
+            Image("SpareTrousers")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 100, height: 100)
+            VStack(spacing: -8) {
+                Text("Create Account")
+                    .font(.custom("MarkerFelt-Wide", size: 24))
+                    .foregroundColor(.appWhite)
+                    .shadow(color: .appBlack, radius: 1)
+                Text("Spare Trousers")
+                    .font(.custom("MarkerFelt-Wide", size: 40))
+                    .foregroundColor(.appWhite)
+                    .shadow(color: .appBlack, radius: 1)
+            }
+        }
+        .padding(.bottom, 20)
+        .frame(maxWidth: .infinity)
+        .background(Color.appBlue)
+    }
+}
+
+private struct RegisterForm: View {
+    @Binding var email: String
+    @Binding var password: String
+    @Binding var address: String
+    @ObservedObject var viewModel: AuthViewModel
+    var onDismiss: () -> Void
+
+    var body: some View {
+        VStack(spacing: 16) {
+            TextField("Enter email", text: $email)
+                .padding(.vertical, 20)
+                .padding(.horizontal, 16)
+                .background(Color.appWhite)
+                .cornerRadius(10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.appBlack, lineWidth: 2)
+                )
+                .autocapitalization(.none)
+                .keyboardType(.emailAddress)
+
+            SecureField("Enter password", text: $password)
+                .padding(.vertical, 20)
+                .padding(.horizontal, 16)
+                .background(Color.appWhite)
+                .cornerRadius(10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.appBlack, lineWidth: 2)
+                )
+
+            TextField("Enter address", text: $address)
+                .padding(.vertical, 20)
+                .padding(.horizontal, 16)
+                .background(Color.appWhite)
+                .cornerRadius(10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.appBlack, lineWidth: 2)
+                )
+                .autocapitalization(.words)
+
+            HStack {
+                Spacer()
+                Text("Have an account?")
+                Button("Login") { onDismiss() }
+                    .foregroundColor(.appBlue)
+            }
+
+            Button {
+                viewModel
+                    .register(
+                        email: email,
+                        password: password,
+                        displayName: email,
+                        address: address
+                    )
+                onDismiss()
+            } label: {
+                Text("REGISTER")
+                    .font(.custom("MarkerFelt-Wide", size: 48))
+                    .shadow(color: .appBlack, radius: 1)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 66)
+                    .background(Color.appBlue)
+                    .foregroundColor(.appWhite)
+                    .cornerRadius(10)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(20)
+        .background(Color.appOrange)
     }
 }
 

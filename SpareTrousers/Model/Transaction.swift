@@ -7,16 +7,6 @@
 
 import SwiftUI
 
-//struct Transaction: Identifiable {
-//    let id: String
-//    let TransactionDate: String
-//    let StartTime: String
-//    let EndTime: String
-//    let RelatedItemId: String //itemid of the transaction
-//    let OwnerId: String
-//    let BorrowerId: String
-//}
-
 struct Transaction: Identifiable, Encodable { // Made Encodable
     let id: String // Should be unique, e.g., UUID().uuidString or Firebase autoId
     let transactionDate: String // ISO8601 formatted date string
