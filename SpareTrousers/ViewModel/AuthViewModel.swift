@@ -211,4 +211,38 @@ class AuthViewModel: ObservableObject {
             }
         }
     }
+    
+    // In your actual AuthViewModel.swift
+    func updateUserDisplayName(newName: String, completion: @escaping (Bool, String?) -> Void) {
+        guard let user = Auth.auth().currentUser else {
+            completion(false, "No authenticated user found.")
+            return
+        }
+
+        // 1. Update Firebase Authentication display name
+        let changeRequest = user.createProfileChangeRequest()
+        changeRequest.displayName = newName
+        changeRequest.commitChanges { [weak self] error in
+            guard let self = self else { return }
+            if let error = error {
+                completion(false, "Error updating Auth profile: \(error.localizedDescription)")
+                return
+            }
+
+            // 2. Update display name in Realtime Database
+            let dbRef = Database.database().reference()
+            dbRef.child("users").child(user.uid).child("displayName").setValue(newName) { error, _ in
+                if let error = error {
+                    completion(false, "Error updating Realtime Database: \(error.localizedDescription)")
+                    return
+                }
+
+                // 3. Update local userSession
+                DispatchQueue.main.async {
+                    self.userSession?.displayName = newName
+                    completion(true, nil)
+                }
+            }
+        }
+    }
 }
