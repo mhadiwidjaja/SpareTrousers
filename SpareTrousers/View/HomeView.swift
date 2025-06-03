@@ -4,44 +4,33 @@ import SwiftUI
 struct HomeView: View {
     // ViewModel for HomeView's own state (like selectedTab, search text etc.)
     @StateObject private var homeViewModel = HomeViewModel()
-
-    // AuthViewModel to be passed to AccountView and potentially other views
-    // This instance will be created once for HomeView and its children.
-    @StateObject private var authViewModel = AuthViewModel() // Create and own AuthViewModel
+    @EnvironmentObject private var authViewModel: AuthViewModel
 
     private let topCornerRadius: CGFloat = 18
 
     var body: some View {
         NavigationView {
             ZStack(alignment: .bottom) {
-                Color.appOffWhite // Ensure .appOffWhite is defined
+                Color.appOffWhite
                   .edgesIgnoringSafeArea(.all)
 
-                // Pass authViewModel to the content view builder
                 content(for: homeViewModel.selectedTab, authViewModel: authViewModel)
                   .frame(maxWidth: .infinity, maxHeight: .infinity)
                   .navigationBarHidden(true)
                   .navigationBarBackButtonHidden(true)
-
-                // BottomNavBar uses homeViewModel for selectedTab
                 BottomNavBar(selectedTab: $homeViewModel.selectedTab)
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
-        // Provide AuthViewModel to the entire hierarchy within HomeView's NavigationView
-        // This makes it available to AccountView and any other view that might need it.
-        // Alternatively, you could pass it more selectively if only AccountView needs it.
-        // However, if other tabs might also need auth state, providing it here is common.
-        .environmentObject(authViewModel)
         .environmentObject(homeViewModel)
     }
 
     @ViewBuilder
-    private func content(for tab: Tab, authViewModel: AuthViewModel) -> some View { // Accept authViewModel
+    private func content(for tab: Tab, authViewModel: AuthViewModel) -> some View {
         switch tab {
         case .home:
             VStack(spacing: 0) {
-                TopNavBar( // Assuming TopNavBar exists
+                TopNavBar(
                   searchText: $homeViewModel.searchText,
                   onSearchTapped: homeViewModel.performSearch
                 )
@@ -52,39 +41,31 @@ struct HomeView: View {
                         Spacer().frame(height: topCornerRadius)
 
                         VStack(alignment: .leading, spacing: 20) {
-                            CategoriesSection(categories: homeViewModel.categories) // Assuming CategoriesSection exists
-                            NearYouSection(items: homeViewModel.displayedNearYouItems) // Assuming NearYouSection exists
+                            CategoriesSection(categories: homeViewModel.categories, homeViewModel: homeViewModel)
+                            ForYouSection(items: homeViewModel.displayedForYouItems)
                             Spacer(minLength: 80)
                         }
                         .padding(.horizontal)
                     }
                 }
-                .background(Color.appWhite) // Ensure .appWhite is defined
-                .clipShape(RoundedCorner( // Assuming RoundedCorner exists
+                .background(Color.appWhite)
+                .clipShape(RoundedCorner(
                   radius: topCornerRadius,
                   corners: [.topLeft, .topRight]
                 ))
-                .padding(.top, -50) // Adjust as per your UI
+                .padding(.top, -50)
                 .background(Color.appWhite)
                 .ignoresSafeArea(edges: .bottom)
             }
-            // If Home content itself needs AuthViewModel, it can access it from the environment
-            // .environmentObject(authViewModel) // Or pass explicitly if preferred
 
         case .myRentals:
-            MyRentalsView() // Assuming MyRentalsView exists
-            // .environmentObject(authViewModel) // If MyRentalsView needs it
+            MyRentalsView()
 
         case .inbox:
-            InboxView() // Assuming InboxView exists
-            // .environmentObject(authViewModel) // If InboxView needs it
+            InboxView()
 
         case .account:
-            AccountView(authViewModel: AuthViewModel())
-            // AccountView will now receive authViewModel from the .environmentObject on NavigationView
-            // No need to explicitly pass it here if provided at a higher level like NavigationView.
-            // However, if you choose not to put .environmentObject on NavigationView,
-            // you would do it here: .environmentObject(authViewModel)
+            AccountView()
         }
     }
 }
@@ -93,10 +74,6 @@ struct HomeView: View {
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
         HomeView()
-          // Optional: show both light and dark modes
           .preferredColorScheme(.light)
-          // AuthViewModel is created by HomeView itself using @StateObject,
-          // so the preview should work without explicitly providing it here,
-          // unless sub-components in the preview directly require it from this level.
     }
 }

@@ -5,17 +5,10 @@
 //  Created by student on 22/05/25.
 //
 
-
 import SwiftUI
 
-
-
-
 struct LoginRegisterView: View {
-    // Use @StateObject if LoginRegisterView is the source of truth for AuthViewModel
-    // or @ObservedObject if it's passed from a parent that owns it.
-    // For the preview and typical app structure, @StateObject is often suitable here if this is a root view for auth.
-    @StateObject var viewModel: AuthViewModel // Changed to @StateObject if it's the owner
+    @StateObject var viewModel: AuthViewModel
     @State private var loginEmail = ""
     @State private var loginPassword = ""
     @State private var showingRegister = false
@@ -34,7 +27,7 @@ struct LoginRegisterView: View {
                         Color.appBlue
                             .frame(width: 80, height: 80)
                             .cornerRadius(10)
-                        Image("SpareTrousers") // Ensure this image is in your assets
+                        Image("SpareTrousers")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 100, height: 100)
@@ -129,12 +122,9 @@ struct LoginRegisterView: View {
             Spacer()
         }
         .sheet(isPresented: $showingRegister) {
-            // Pass the same AuthViewModel instance to RegisterCard
             RegisterCard(viewModel: viewModel)
         }
-        // If LoginRegisterView is a root view for authentication,
-        // it might be where AuthViewModel is initialized.
-        // .environmentObject(viewModel) // If sub-sub-views need it via environment
+        .navigationBarBackButtonHidden(true)
     }
 }
 
@@ -144,28 +134,35 @@ struct RegisterCard: View {
 
     @State private var email = ""
     @State private var password = ""
-    @State private var address = "" // New state for address
+    @State private var address = ""
 
     var body: some View {
-        // Wrap in NavigationView to allow for a potential title and cleaner presentation
         NavigationView {
             VStack {
                 Spacer()
                 VStack(spacing: 0) {
                     VStack(spacing: 16) {
                         Spacer().frame(height: 24)
-                        Image("SpareTrousers") // Ensure this image is in your assets
+                        Image("SpareTrousers")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 100, height: 100)
                         VStack(spacing: -8) {
-                            Text("Create Account") // Changed title for clarity
+                            Text("Create Account")
                                 .font(.custom("MarkerFelt-Wide", size: 24))
                                 .foregroundColor(.appWhite)
-                                .shadow(color: .appBlack, radius: 1) // Apply shadows as needed
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
                             Text("Spare Trousers")
                                 .font(.custom("MarkerFelt-Wide", size: 40))
                                 .foregroundColor(.appWhite)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
                                 .shadow(color: .appBlack, radius: 1)
                         }
                     }
@@ -190,7 +187,6 @@ struct RegisterCard: View {
                             .cornerRadius(10)
                             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.appBlack, lineWidth: 2))
 
-                        // New TextField for Address
                         TextField("Enter address", text: $address)
                             .padding(.vertical, 20)
                             .padding(.horizontal, 16)
@@ -208,15 +204,15 @@ struct RegisterCard: View {
                         }
 
                         Button {
-                            // Pass email, password, AND address to the register function
                             viewModel.register(email: email, password: password, address: address)
-                            // Consider dismissing only on successful registration,
-                            // which might require a callback or publisher from AuthViewModel.
-                            // For now, it dismisses immediately.
                             dismiss()
                         } label: {
                             Text("REGISTER")
                                 .font(.custom("MarkerFelt-Wide", size: 48))
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
                                 .shadow(color: .appBlack, radius: 1)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 66)
@@ -235,9 +231,9 @@ struct RegisterCard: View {
                 .padding(24)
                 Spacer()
             }
-            .navigationTitle("Register") // Add a title to the sheet
+            .navigationTitle("Register")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { // Add a dismiss button to the toolbar for better UX
+            .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
                         dismiss()
