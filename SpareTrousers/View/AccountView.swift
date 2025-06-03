@@ -10,6 +10,7 @@ import SwiftUI
 // MARK: - AccountView
 struct AccountView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @State private var isShowingAccountSettingsModal = false
 
     let topSectionCornerRadius: CGFloat = 18
     private var displayEmail: String {
@@ -30,14 +31,14 @@ struct AccountView: View {
                     VStack(spacing: 12) {
                         Spacer()
                             .frame(
-height: UIApplication.shared.connectedScenes
-    .filter {
-        $0.activationState == .foregroundActive
-    }
-    .compactMap { $0 as? UIWindowScene }
-    .first?.windows
-    .filter { $0.isKeyWindow }
-    .first?.safeAreaInsets.top ?? 0 + 20)
+                                height: UIApplication.shared.connectedScenes
+                                    .filter {
+                                        $0.activationState == .foregroundActive
+                                    }
+                                    .compactMap { $0 as? UIWindowScene }
+                                    .first?.windows
+                                    .filter { $0.isKeyWindow }
+                                    .first?.safeAreaInsets.top ?? 0 + 30)
 
                         HStack {
                             Text("Account")
@@ -107,6 +108,7 @@ height: UIApplication.shared.connectedScenes
                     VStack(spacing: 0) {
                         Button {
                             print("Account Settings tapped")
+                            isShowingAccountSettingsModal = true
                         } label: {
                             HStack {
                                 Image(systemName: "gearshape.fill")
@@ -161,6 +163,9 @@ height: UIApplication.shared.connectedScenes
                 .offset(y: -68)
             }
             .background(Color.appOffWhite.edgesIgnoringSafeArea(.all))
+            .sheet(isPresented: $isShowingAccountSettingsModal) {
+                AccountSettingsModalView()
+            }
         }
     }
 }

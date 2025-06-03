@@ -156,4 +156,30 @@ class AuthViewModel: ObservableObject {
             }
         }
     }
+    
+    func updateUserAddress(newAddress: String) {
+        guard let uid = self.userSession?.uid else {
+            DispatchQueue.main.async {
+                self.errorMessage = "User not logged in. Cannot update address."
+                print(self.errorMessage ?? "Error: User not logged in for address update.")
+            }
+            return
+        }
+
+        let userAddressRef = ref.child("users").child(uid).child("address")
+        
+        userAddressRef.setValue(newAddress) { [weak self] error, _ in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                if let error = error {
+                    self.errorMessage = "Failed to update address: \(error.localizedDescription)"
+                    print(self.errorMessage ?? "Error: Failed to update address in Firebase.")
+                } else {
+                    print("User address updated successfully in Firebase.")
+                    self.userAddress = newAddress
+                    self.errorMessage = nil
+                }
+            }
+        }
+    }
 }
