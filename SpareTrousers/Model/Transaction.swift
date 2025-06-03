@@ -12,7 +12,7 @@ struct Transaction: Identifiable {
     let TransactionDate: String
     let StartTime: String
     let EndTime: String
-    let PhotoName: String
+    let RelatedItemId: String
     let OwnerId: String
     let BorrowerId: String
 }

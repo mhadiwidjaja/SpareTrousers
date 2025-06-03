@@ -14,7 +14,6 @@ struct InboxMessage: Identifiable {
     let dateLine: String
     let type: String
     let showsRejectButton: Bool
-    let relatedItemId: String?
     let relatedTransactionId: String?
     let timestamp: TimeInterval
     var isRead: Bool
@@ -39,7 +38,6 @@ struct InboxMessage: Identifiable {
         self.showsRejectButton = showsRejectButton
         self.timestamp = timestamp
         self.isRead = dictionary["isRead"] as? Bool ?? false
-        self.relatedItemId = dictionary["relatedItemId"] as? String
         self.relatedTransactionId = dictionary["relatedTransactionId"] as? String
         self.lenderName = dictionary["lenderName"] as? String
         self.itemName = dictionary["itemName"] as? String

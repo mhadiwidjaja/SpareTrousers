@@ -177,7 +177,6 @@ withCancel: { [weak self] error in
             "dateLine": dateLine,
             "type": type,
             "showsRejectButton": showsReject,
-            "relatedItemId": "DUMMY_ITEM_ID_\(Int.random(in: 100...999))", // Placeholder
             "relatedTransactionId": "DUMMY_TRANS_ID_\(Int.random(in: 100...999))", // Placeholder
             "timestamp": ServerValue
                 .timestamp(), // Use Firebase server timestamp for ordering
