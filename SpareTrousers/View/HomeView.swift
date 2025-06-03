@@ -1,5 +1,6 @@
-import SwiftUI
+// mhadiwidjaja/sparetrousers/SpareTrousers-a561ff476a166c8bc23b8d4c7bfb8fb50ec5c30f/SpareTrousers/View/HomeView.swift
 
+import SwiftUI
 
 struct HomeView: View {
     // ViewModel for HomeView's own state (like selectedTab, search text etc.)
@@ -12,17 +13,17 @@ struct HomeView: View {
         NavigationView {
             ZStack(alignment: .bottom) {
                 Color.appOffWhite
-                  .edgesIgnoringSafeArea(.all)
+                    .edgesIgnoringSafeArea(.all)
 
                 content(for: homeViewModel.selectedTab, authViewModel: authViewModel)
-                  .frame(maxWidth: .infinity, maxHeight: .infinity)
-                  .navigationBarHidden(true)
-                  .navigationBarBackButtonHidden(true)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .navigationBarHidden(true)
+                    .navigationBarBackButtonHidden(true)
                 BottomNavBar(selectedTab: $homeViewModel.selectedTab)
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
-        .environmentObject(homeViewModel)
+        .environmentObject(homeViewModel) // Provides HomeViewModel to children like MyRentalsView for its environment needs
     }
 
     @ViewBuilder
@@ -31,8 +32,8 @@ struct HomeView: View {
         case .home:
             VStack(spacing: 0) {
                 TopNavBar(
-                  searchText: $homeViewModel.searchText,
-                  onSearchTapped: homeViewModel.performSearch
+                    searchText: $homeViewModel.searchText,
+                    onSearchTapped: homeViewModel.performSearch
                 )
                 .ignoresSafeArea(edges: .top)
 
@@ -50,8 +51,8 @@ struct HomeView: View {
                 }
                 .background(Color.appWhite)
                 .clipShape(RoundedCorner(
-                  radius: topCornerRadius,
-                  corners: [.topLeft, .topRight]
+                    radius: topCornerRadius,
+                    corners: [.topLeft, .topRight]
                 ))
                 .padding(.top, -50)
                 .background(Color.appWhite)
@@ -59,7 +60,8 @@ struct HomeView: View {
             }
 
         case .myRentals:
-            MyRentalsView()
+            // Instantiate MyRentalsView and pass the homeViewModel
+            MyRentalsView(homeViewModel: homeViewModel) // MODIFIED HERE
 
         case .inbox:
             InboxView()
@@ -73,13 +75,9 @@ struct HomeView: View {
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
         HomeView()
-            .environmentObject(AuthViewModel()) // Add this line
+            .environmentObject(AuthViewModel())
             // homeViewModel is managed by @StateObject within HomeView,
-            // but if you had specific states to test for homeViewModel,
-            // you could potentially initialize and pass it too,
-            // though it's not strictly necessary for the preview to run
-            // as HomeView initializes it.
-            // For example: .environmentObject(HomeViewModel()) if it were an @EnvironmentObject
+            // and also provided to the environment for its children.
             .preferredColorScheme(.light)
     }
 }

@@ -21,7 +21,7 @@ class HomeViewModel: ObservableObject {
     @Published var isLoadingItems: Bool = false
     @Published var errorMessage: String? = nil
 
-    private var allFetchedItems: [DisplayItem] = []
+    @Published var allFetchedItems: [DisplayItem] = []
     private var dbRef: DatabaseReference!
     private var itemsListenerHandle: DatabaseHandle?
     private var cancellables = Set<AnyCancellable>()
