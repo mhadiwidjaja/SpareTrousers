@@ -213,10 +213,7 @@ struct InboxRow: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(message.messageText)
-                    .font(.body)
-                    .foregroundColor(.appBlack)
-                    .fixedSize(horizontal: false, vertical: true)
+
 
                 Text(message.dateLine)
                     .font(.caption)
