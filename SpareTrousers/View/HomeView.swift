@@ -70,10 +70,16 @@ struct HomeView: View {
     }
 }
 
-// MARK: - Preview
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
         HomeView()
-          .preferredColorScheme(.light)
+            .environmentObject(AuthViewModel()) // Add this line
+            // homeViewModel is managed by @StateObject within HomeView,
+            // but if you had specific states to test for homeViewModel,
+            // you could potentially initialize and pass it too,
+            // though it's not strictly necessary for the preview to run
+            // as HomeView initializes it.
+            // For example: .environmentObject(HomeViewModel()) if it were an @EnvironmentObject
+            .preferredColorScheme(.light)
     }
 }
