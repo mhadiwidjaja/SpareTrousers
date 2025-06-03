@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct NearYouSection: View {
+struct ForYouSection: View {
     let items: [DisplayItem]
 
     private let columns = [
@@ -10,7 +10,7 @@ struct NearYouSection: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            Text("Near You")
+            Text("For You")
                 .font(.custom("MarkerFelt-Wide", size: 24))
                 .foregroundColor(.appBlack)
                 .padding(.leading, 5)

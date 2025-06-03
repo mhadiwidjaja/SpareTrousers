@@ -15,11 +15,11 @@ struct MyRentalsView: View {
     // corner radius for the white content
     let topSectionCornerRadius: CGFloat = 18
 
-    /// Only the current user's available lending items
+    // Only the current user's available lending items
     private var myLendingItems: [DisplayItem] {
         let uid = Auth.auth().currentUser?.uid ?? ""
         return homeVM
-            .displayedNearYouItems    // or, if you want _all_ items, expose a `@Published var allItems` in VM
+            .displayedForYouItems
             .filter { $0.ownerUid == uid && $0.status }
     }
 
@@ -33,6 +33,10 @@ struct MyRentalsView: View {
                         Text("My Rentals")
                             .font(.custom("MarkerFelt-Wide", size: 36))
                             .foregroundColor(.appWhite)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
                             .shadow(color: .appBlack, radius: 1)
                         Spacer()
                         Image("SpareTrousers")
@@ -123,7 +127,6 @@ struct MyRentalsView: View {
     }
 }
 
-// RentalRow unchanged, except now accepts an optional DisplayItem
 struct RentalRow: View {
     var item: DisplayItem? = nil
     var isBorrowing: Bool = true

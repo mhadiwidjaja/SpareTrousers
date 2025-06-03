@@ -52,8 +52,8 @@ struct HomeView: View {
                         Spacer().frame(height: topCornerRadius)
 
                         VStack(alignment: .leading, spacing: 20) {
-                            CategoriesSection(categories: homeViewModel.categories) // Assuming CategoriesSection exists
-                            NearYouSection(items: homeViewModel.displayedNearYouItems) // Assuming NearYouSection exists
+                            CategoriesSection(categories: homeViewModel.categories, homeViewModel: homeViewModel)
+                            ForYouSection(items: homeViewModel.displayedForYouItems)
                             Spacer(minLength: 80)
                         }
                         .padding(.horizontal)
