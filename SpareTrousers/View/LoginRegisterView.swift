@@ -152,9 +152,17 @@ struct RegisterCard: View {
                                 .font(.custom("MarkerFelt-Wide", size: 24))
                                 .foregroundColor(.appWhite)
                                 .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
                             Text("Spare Trousers")
                                 .font(.custom("MarkerFelt-Wide", size: 40))
                                 .foregroundColor(.appWhite)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
                                 .shadow(color: .appBlack, radius: 1)
                         }
                     }
@@ -201,6 +209,10 @@ struct RegisterCard: View {
                         } label: {
                             Text("REGISTER")
                                 .font(.custom("MarkerFelt-Wide", size: 48))
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
                                 .shadow(color: .appBlack, radius: 1)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 66)

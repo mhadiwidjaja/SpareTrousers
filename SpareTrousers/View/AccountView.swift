@@ -9,39 +9,35 @@ import SwiftUI
 
 // MARK: - AccountView
 struct AccountView: View {
-    @ObservedObject var authViewModel: AuthViewModel
-    // State to control navigation to LoginRegisterView
-    @State private var shouldNavigateToLoginRegister = false
+    @EnvironmentObject var authViewModel: AuthViewModel
 
     let topSectionCornerRadius: CGFloat = 18
-    let email = "sample email if you're seeing this Something aint right" // Placeholder
-    let address = "sample address if you're seeing this Something aint right or address unset"     // Placeholder
+    private var displayEmail: String {
+        authViewModel.userSession?.email ?? "sample email if you're seeing this Something aint right"
+    }
+    private var displayAddress: String {
+        authViewModel.userAddress ?? "sample address if you're seeing this Something aint right or address unset"
+    }
 
     var body: some View {
         GeometryReader { geo in
             VStack(spacing: 0) {
-                // NavigationLink that will be triggered by shouldNavigateToLoginRegister
-                // It's "hidden" because its label is EmptyView and activation is programmatic.
-                // This link must be within the NavigationView provided by HomeView.
-                NavigationLink(
-                    destination: LoginRegisterView(viewModel: authViewModel),
-                    isActive: $shouldNavigateToLoginRegister
-                ) {
-                    EmptyView()
-                }
-
                 // ───── BLUE HEADER + PROFILE CARD ─────
                 ZStack(alignment: .top) {
                     Color.appBlue
                         .edgesIgnoringSafeArea(.top)
 
                     VStack(spacing: 12) {
-                        Spacer().frame(height: UIApplication.shared.connectedScenes
-                            .filter { $0.activationState == .foregroundActive }
-                            .compactMap { $0 as? UIWindowScene }
-                            .first?.windows
-                            .filter { $0.isKeyWindow }
-                            .first?.safeAreaInsets.top ?? 0 + 20)
+                        Spacer()
+                            .frame(
+height: UIApplication.shared.connectedScenes
+    .filter {
+        $0.activationState == .foregroundActive
+    }
+    .compactMap { $0 as? UIWindowScene }
+    .first?.windows
+    .filter { $0.isKeyWindow }
+    .first?.safeAreaInsets.top ?? 0 + 20)
 
                         HStack {
                             Text("Account")
@@ -67,7 +63,7 @@ struct AccountView: View {
                                     .foregroundColor(.appBlack)
                                 Spacer()
                             }
-                            Text(authViewModel.userSession?.email ?? email)
+                            Text(displayEmail)
                                 .font(.subheadline)
                                 .foregroundColor(.appBlack)
 
@@ -77,14 +73,19 @@ struct AccountView: View {
                                     .foregroundColor(.appBlack)
                                 Spacer()
                             }
-                            Text(authViewModel.userAddress ?? address)
+                            Text(displayAddress)
                                 .font(.subheadline)
                                 .foregroundColor(.appBlack)
                         }
                         .padding()
                         .background(Color.appWhite)
                         .cornerRadius(10)
-                        .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 1)
+                        .shadow(
+                            color: .black.opacity(0.1),
+                            radius: 1,
+                            x: 0,
+                            y: 1
+                        )
                         .padding(.horizontal)
                     }
                 }
@@ -126,15 +127,17 @@ struct AccountView: View {
 
                         Button {
                             authViewModel.logout()
-                            print("Logout button tapped, attempting to navigate.")
-                            // Set the state to true to trigger navigation
-                            shouldNavigateToLoginRegister = true
+                            print(
+                                "Logout button tapped, attempting to navigate."
+                            )
                         } label: {
                             HStack {
-                                Image(systemName: "rectangle.portrait.and.arrow.right.fill")
-                                    .font(.largeTitle)
-                                    .foregroundColor(.red)
-                                    .frame(width: 64, height: 64)
+                                Image(
+                                    systemName: "rectangle.portrait.and.arrow.right.fill"
+                                )
+                                .font(.largeTitle)
+                                .foregroundColor(.red)
+                                .frame(width: 64, height: 64)
                                 Text("Logout")
                                     .font(.title.bold())
                                     .foregroundColor(.red)
@@ -158,10 +161,6 @@ struct AccountView: View {
                 .offset(y: -68)
             }
             .background(Color.appOffWhite.edgesIgnoringSafeArea(.all))
-            // The .navigationTitle for AccountView itself is usually set by the
-            // TabView or whatever presents it, or can be set here if it's the top-level view in this tab.
-            // .navigationTitle("Account") // Uncomment if needed
-            // .navigationBarHidden(true) // Typically, if part of HomeView's tab structure, HomeView handles nav bar visibility
         }
     }
 }
@@ -169,12 +168,9 @@ struct AccountView: View {
 // MARK: - Preview
 struct AccountView_Previews: PreviewProvider {
     static var previews: some View {
-        // Wrap in NavigationView for previewing navigation behavior
         NavigationView {
-            AccountView(
-                
-                authViewModel: AuthViewModel())
-                
+            AccountView()
+                .environmentObject(AuthViewModel())
         }
     }
 }

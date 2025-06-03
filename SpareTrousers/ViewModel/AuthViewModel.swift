@@ -10,61 +10,6 @@ import FirebaseAuth
 import Combine
 import FirebaseDatabase
 
-//class AuthViewModel: ObservableObject {
-//    @Published var userSession: UserSession? = nil
-//    @Published var isLoading: Bool = false
-//    @Published var errorMessage: String?
-//
-//    init() {
-//        checkAuthState()
-//    }
-//
-//    func checkAuthState() {
-//        if let user = Auth.auth().currentUser {
-//            self.userSession = UserSession(uid: user.uid, email: user.email)
-//        } else {
-//            self.userSession = nil
-//        }
-//    }
-//
-//    func login(email: String, password: String) {
-//        isLoading = true
-//        Auth.auth().signIn(withEmail: email, password: password) { result, error in
-//            DispatchQueue.main.async {
-//                self.isLoading = false
-//                if let error = error {
-//                    self.errorMessage = error.localizedDescription
-//                    return
-//                }
-//                if let user = result?.user {
-//                    self.userSession = UserSession(uid: user.uid, email: user.email)
-//                }
-//            }
-//        }
-//    }
-//
-//    func register(email: String, password: String) {
-//        isLoading = true
-//        Auth.auth().createUser(withEmail: email, password: password) { result, error in
-//            DispatchQueue.main.async {
-//                self.isLoading = false
-//                if let error = error {
-//                    self.errorMessage = error.localizedDescription
-//                    return
-//                }
-//                if let user = result?.user {
-//                    self.userSession = UserSession(uid: user.uid, email: user.email)
-//                }
-//            }
-//        }
-//    }
-//
-//    func logout() {
-//        try? Auth.auth().signOut()
-//        self.userSession = nil
-//    }
-//}
-
 class AuthViewModel: ObservableObject {
     @Published var userSession: UserSession? = nil
     @Published var isLoading: Bool = false
@@ -202,7 +147,7 @@ class AuthViewModel: ObservableObject {
             try Auth.auth().signOut()
             DispatchQueue.main.async {
                 self.userSession = nil
-                self.userAddress = nil // Clear address on logout
+                self.userAddress = nil
                 self.errorMessage = nil
             }
         } catch let signOutError as NSError {
