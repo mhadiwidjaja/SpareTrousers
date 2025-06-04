@@ -1,3 +1,5 @@
+// mhadiwidjaja/sparetrousers/SpareTrousers-a561ff476a166c8bc23b8d4c7bfb8fb50ec5c30f/SpareTrousers/View/MyRentalsView.swift
+
 import SwiftUI
 import FirebaseAuth
 
@@ -87,7 +89,9 @@ struct MyRentalsView: View {
                                         id: \.item.id
                                     ) { entry in
                                         NavigationLink(
-                                            destination: BorrowedItemDetailView(item: entry.item, transaction: entry.transaction)
+                                            destination: ItemDetailView(
+                                                item: entry.item
+                                            )
                                         ) {
                                             RentalRow(item: entry.item,
                                                       transaction: entry.transaction,
@@ -240,7 +244,7 @@ struct RentalRow: View {
             return ("Status: Rent due today", .red)
         } else if calendar.isDateInTomorrow(endTimeDate) {
             return ("Status: Rent due tomorrow", .orange)
-        } else if endTimeDate < Date() {
+        } else if endTimeDate < Date() { // Date() is the current date and time
             return ("Status: Overdue", .red)
         } else {
             let formattedDate = dateFormatter.string(from: endTimeDate)
