@@ -47,7 +47,7 @@ class ModelTests: XCTestCase {
         XCTAssertEqual(item.description, "Very cool trousers for rent.")
         XCTAssertEqual(item.isAvailable, true)
         XCTAssertEqual(item.ownerUid, "user456")
-        XCTAssertTrue(item.status) // Default value
+        XCTAssertTrue(item.status)
     }
 
     func testInboxMessageInitializationWithDictionary() {
@@ -80,7 +80,6 @@ class ModelTests: XCTestCase {
     func testInboxMessageInitializationWithDictionary_MissingFields() {
         let messageDict: [String: Any] = [
             "dateLine": "New Request",
-            // "type" is missing
             "showsRejectButton": true,
             "timestamp": Date().timeIntervalSince1970
         ]
@@ -143,7 +142,6 @@ class ModelTests: XCTestCase {
     }
     
     func testTransactionRequestStatusDefault() {
-        // Test that requestStatus defaults to "pending"
         let transaction = Transaction(
             id: "txnDefault",
             transactionDate: "2025-06-01T10:00:00Z",
@@ -152,7 +150,6 @@ class ModelTests: XCTestCase {
             relatedItemId: "itemDefault",
             ownerId: "ownerDefault",
             borrowerId: "borrowerDefault"
-            // requestStatus is omitted
         )
         XCTAssertEqual(transaction.requestStatus, "pending")
     }

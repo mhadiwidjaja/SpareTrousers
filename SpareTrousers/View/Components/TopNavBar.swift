@@ -4,7 +4,6 @@ struct TopNavBar: View {
     @Binding var searchText: String
     var onSearchTapped: () -> Void
 
-    // pull the giant safe-area expression out into its own var:
     private var topInset: CGFloat {
         UIApplication.shared
           .connectedScenes

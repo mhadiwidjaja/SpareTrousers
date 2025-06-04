@@ -12,7 +12,6 @@ struct RoundedCorner: Shape {
     var corners: UIRectCorner = .allCorners
 
     func path(in rect: CGRect) -> Path {
-        // no more `|>` operator — just wrap the cgPath directly
         let bezier = UIBezierPath(
             roundedRect: rect,
             byRoundingCorners: corners,

@@ -7,9 +7,6 @@
 
 import SwiftUI
 
-
-
-
 struct InboxView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @StateObject private var viewModel = InboxViewModel()
@@ -36,12 +33,10 @@ struct InboxView: View {
             }
             .background(Color.appOffWhite.edgesIgnoringSafeArea(.all))
             .sheet(isPresented: $showingAddDummyMessageModal) {
-                // Pass the necessary ViewModels to the modal
                 AddDummyMessageModalView(inboxViewModel: viewModel, authViewModel: authViewModel)
             }
             .onAppear {
                 if let userId = authViewModel.userSession?.uid {
-                    // Pass display name and email for message generation context
                     viewModel.setupListeners(
                         forUser: userId,
                         userDisplayName: authViewModel.userSession?.displayName,
@@ -54,8 +49,6 @@ struct InboxView: View {
         }
     }
 }
-
-// InboxHeaderView remains the same as in 'swiftui_inbox_view' (Updated Design)
 
 struct InboxHeaderView: View {
     let topSectionCornerRadius: CGFloat
@@ -93,7 +86,6 @@ struct InboxHeaderView: View {
     }
 }
 
-// InboxContentView remains largely the same, displaying messages from viewModel
 struct InboxContentView: View {
     @ObservedObject var viewModel: InboxViewModel
     let topSectionCornerRadius: CGFloat
@@ -102,7 +94,7 @@ struct InboxContentView: View {
     var body: some View {
         ZStack(alignment: .top) {
             Color.appWhite.clipShape(RoundedCorner(radius: topSectionCornerRadius, corners: [.topLeft, .topRight]))
-            if viewModel.isLoading && viewModel.inboxMessages.isEmpty { // Show loading only if messages are empty
+            if viewModel.isLoading && viewModel.inboxMessages.isEmpty {
                 ProgressView("Loading messages...").padding(.top, topSectionCornerRadius + 20)
             } else if let errorMessage = viewModel.errorMessage {
                 Text("Error: \(errorMessage)").foregroundColor(.red).padding().padding(.top, topSectionCornerRadius)
@@ -114,7 +106,7 @@ struct InboxContentView: View {
                 ScrollView {
                     VStack(spacing: 12) {
                         ForEach(viewModel.inboxMessages) { message in
-                            InboxMessageRow(message: message, viewModel: viewModel, authViewModel: _authViewModel) // Pass AuthViewModel
+                            InboxMessageRow(message: message, viewModel: viewModel, authViewModel: _authViewModel)
                                 .padding(.horizontal)
                         }
                     }
@@ -124,16 +116,13 @@ struct InboxContentView: View {
         }
         .frame(width: geo.size.width, height: geo.size.height + 86).ignoresSafeArea(edges: .bottom)
     }
-    // Need to get AuthViewModel to pass to InboxMessageRow if it needs current user's display name
     @EnvironmentObject var _authViewModel: AuthViewModel
 }
 
-
-// MARK: - Updated InboxMessageRow
 struct InboxMessageRow: View {
     let message: InboxMessage
     @ObservedObject var viewModel: InboxViewModel
-    @ObservedObject var authViewModel: AuthViewModel // To get current user's display name for context
+    @ObservedObject var authViewModel: AuthViewModel
 
     private var displayTimestamp: String {
         let date = Date(timeIntervalSince1970: message.timestamp)
@@ -151,14 +140,12 @@ struct InboxMessageRow: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(message.dateLine)
-                    .font(.headline).fontWeight(message.isRead ? .regular : .bold).lineLimit(3) // Allow more lines
-
+                    .font(.headline).fontWeight(message.isRead ? .regular : .bold).lineLimit(3)
                 if let itemName = message.itemName {
                     Text("Item: \(itemName)")
                         .font(.subheadline).foregroundColor(.appOffGray).lineLimit(1)
                 }
-                // Displaying the "other party" in the message
-                if let otherPartyName = message.lenderName { // 'lenderName' stores the name of the other party
+                if let otherPartyName = message.lenderName {
                     Text(message.type.contains("borrower") ? "To: \(otherPartyName)" : "From: \(otherPartyName)")
                         .font(.caption).foregroundColor(.appOffGray)
                 }
@@ -166,19 +153,17 @@ struct InboxMessageRow: View {
             }
             Spacer()
 
-            // Action Buttons based on message type
-
-            if message.type == viewModel.MSG_TYPE_REQUEST_RECEIVED && message.showsRejectButton { // Lender action for new request
+            // Action buttons based on message type
+            if message.type == viewModel.MSG_TYPE_REQUEST_RECEIVED && message.showsRejectButton {
                 actionButtons(acceptAction: { viewModel.acceptRequest(message: message) },
-                              rejectAction: { viewModel.rejectRequest(message: message) }) // Removed redundant text params
-            } else if message.type == viewModel.MSG_TYPE_LOCAL_BORROWER_RETURN_PROMPT { // Borrower action
+                              rejectAction: { viewModel.rejectRequest(message: message) })
+            } else if message.type == viewModel.MSG_TYPE_LOCAL_BORROWER_RETURN_PROMPT {
                 actionButtons(acceptAction: { viewModel.handleBorrowerReturnedAction(message: message, didReturn: true) },
                               rejectAction: { viewModel.handleBorrowerReturnedAction(message: message, didReturn: false) })
-            } else if message.type == viewModel.MSG_TYPE_LENDER_CONFIRM_RECEIPT_PROMPT && message.showsRejectButton { // Lender action
+            } else if message.type == viewModel.MSG_TYPE_LENDER_CONFIRM_RECEIPT_PROMPT && message.showsRejectButton {
                 actionButtons(acceptAction: { viewModel.handleLenderConfirmReceiptAction(message: message, didReceive: true) },
                               rejectAction: { viewModel.handleLenderConfirmReceiptAction(message: message, didReceive: false) })
             }
-            // Add other message type button logic here if needed
         }
         .padding().background(Color.appWhite).cornerRadius(10)
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(message.isRead ? Color.appOffWhite : Color.appBlack.opacity(0.7), lineWidth: message.isRead ? 1 : 2))
@@ -186,32 +171,30 @@ struct InboxMessageRow: View {
         .contentShape(Rectangle())
         .onTapGesture {
             if !message.isRead { viewModel.markMessageAsRead(messageId: message.id) }
-            // TODO: Navigation to details
         }
     }
 
-    // Helper for creating action buttons
     @ViewBuilder
     private func actionButtons(acceptAction: @escaping () -> Void, rejectAction: @escaping () -> Void) -> some View {
-        HStack(spacing: 12) { // Matched spacing from your snippet example if different
+        HStack(spacing: 12) {
             Button(action: acceptAction) {
-                Image(systemName: "checkmark") // Changed from checkmark.circle.fill
-                    .font(.system(size: 18, weight: .bold)) // Matched font
-                    .frame(width: 30, height: 30)          // Matched frame
-                    .background(Color.green.opacity(0.8))   // Matched background
-                    .foregroundColor(.white)                // Matched foreground
-                    .cornerRadius(6)                        // Matched cornerRadius
+                Image(systemName: "checkmark")
+                    .font(.system(size: 18, weight: .bold))
+                    .frame(width: 30, height: 30)
+                    .background(Color.green.opacity(0.8))
+                    .foregroundColor(.white)
+                    .cornerRadius(6)
             }
             .buttonStyle(BorderlessButtonStyle())
 
             if message.showsRejectButton {
                 Button(action: rejectAction) {
-                    Image(systemName: "xmark") // Changed from xmark.circle.fill
-                        .font(.system(size: 18, weight: .bold)) // Matched font
-                        .frame(width: 30, height: 30)          // Matched frame
-                        .background(Color.red.opacity(0.8))     // Matched background
-                        .foregroundColor(.white)                // Matched foreground
-                        .cornerRadius(6)                        // Matched cornerRadius
+                    Image(systemName: "xmark")
+                        .font(.system(size: 18, weight: .bold))
+                        .frame(width: 30, height: 30)
+                        .background(Color.red.opacity(0.8))
+                        .foregroundColor(.white)
+                        .cornerRadius(6)
                 }
                 .buttonStyle(BorderlessButtonStyle())
             }
@@ -219,8 +202,6 @@ struct InboxMessageRow: View {
     }
 }
 
-
-// AddDummyMessageModalView remains the same as in 'swiftui_inbox_view' (Updated Design with Add Dummy Message Modal)
 struct AddDummyMessageModalView: View {
     @ObservedObject var inboxViewModel: InboxViewModel
     @ObservedObject var authViewModel: AuthViewModel

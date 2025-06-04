@@ -44,10 +44,10 @@ class HomeViewModelTests: XCTestCase {
             var updateCount = 0
 
             viewModel.$displayedForYouItems
-                .dropFirst() // Ignore initial state
+                .dropFirst()
                 .sink { _ in
                     updateCount += 1
-                    if updateCount >= 2 { // Expect updates for selection and deselection
+                    if updateCount >= 2 {
                         expectation.fulfill()
                     }
                 }
@@ -67,7 +67,6 @@ class HomeViewModelTests: XCTestCase {
         }
 
     func testSearchTextFiltering() {
-        // Simulate some items
         let item1 = DisplayItem(id: "1", name: "Blue Shirt", imageName: "", rentalPrice: "", categoryId: 1, description: "A nice blue shirt", isAvailable: true, ownerUid: "owner1")
                 let item2 = DisplayItem(id: "2", name: "Red Trousers", imageName: "", rentalPrice: "", categoryId: 1, description: "Comfortable red trousers", isAvailable: true, ownerUid: "owner2")
                 let item3 = DisplayItem(id: "3", name: "Blue Hat", imageName: "", rentalPrice: "", categoryId: 1, description: "A stylish blue hat", isAvailable: true, ownerUid: "owner3")

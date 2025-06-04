@@ -5,22 +5,14 @@
 //  Created by student on 30/05/25.
 //
 
-
-
-
 import SwiftUI
 
-
-//TODO: Maybe move this someplace else
-// Assuming Review struct is defined as:
 struct Review: Identifiable {
     let id = UUID()
     let reviewerName: String
     let reviewText: String
     let rating: Int
 }
-
-
 
 struct ItemDetailView: View {
     let item: DisplayItem
@@ -45,7 +37,7 @@ struct ItemDetailView: View {
             Color.appOffWhite.edgesIgnoringSafeArea(.all)
 
             Color.appWhite
-                .offset(y: 290) // Adjust if header height changes
+                .offset(y: 290)
                 .edgesIgnoringSafeArea(.bottom)
 
             ScrollView(showsIndicators: false) {
@@ -58,7 +50,7 @@ struct ItemDetailView: View {
                     .offset(y: -86)
 
                     ItemInfoPanelView(
-                        item: item, // Pass the full item
+                        item: item,
                         sampleReviews: sampleReviews,
                         infoCornerRadius: infoCornerRadius
                     )
@@ -82,8 +74,6 @@ struct ItemDetailView: View {
     }
 }
 
-// MARK: - Subviews (Using user's provided versions, renamed for clarity in this merge)
-
 struct ItemDetailHeaderView: View {
     let productImages: [String]
     @Binding var currentPage: Int
@@ -92,7 +82,7 @@ struct ItemDetailHeaderView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             Color.appBlue
-                .frame(height: 380) // Adjusted from your uploaded ItemDetailView
+                .frame(height: 380)
                 .clipShape(
                     RoundedCorner(radius: infoCornerRadius,
                                   corners: [.bottomLeft, .bottomRight])
@@ -109,7 +99,7 @@ struct ItemDetailHeaderView: View {
 }
 
 struct ItemInfoPanelView: View {
-    let item: DisplayItem // Now receives the full item
+    let item: DisplayItem
     let sampleReviews: [Review]
     let infoCornerRadius: CGFloat
 
@@ -121,7 +111,6 @@ struct ItemInfoPanelView: View {
 
             HStack(spacing: 12) {
                 RatingViewFromUser(rating: 4.8, reviewCount: 69)
-                // Use item.isAvailable if you fetch it and pass it
                 AvailabilityViewFromUser(isAvailable: item.isAvailable ?? true)
                 Spacer()
             }
@@ -131,7 +120,6 @@ struct ItemInfoPanelView: View {
                 .fontWeight(.semibold)
                 .foregroundColor(.appBlack)
 
-            // Use item.description here
             ItemDescriptionSection(description: item.description)
 
             ItemReviewsSection(sampleReviews: sampleReviews)
@@ -187,15 +175,13 @@ struct ImageCarouselViewFromUser: View {
     var body: some View {
         TabView(selection: $currentPage) {
             ForEach(0..<images.count, id: \.self) { index in
-                // Attempt to load image, provide fallback
                 if UIImage(named: images[index]) != nil {
                     Image(images[index])
                         .resizable()
-                        .scaledToFit() // Or .scaledToFill() depending on desired effect
+                        .scaledToFit()
                         .cornerRadius(12)
                         .tag(index)
                 } else {
-                    // Fallback view if image is not found
                     Rectangle()
                         .fill(Color.gray.opacity(0.3))
                         .cornerRadius(12)
@@ -204,7 +190,7 @@ struct ImageCarouselViewFromUser: View {
                 }
             }
         }
-        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always)) // Or .automatic
+        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
     }
 }
 
@@ -218,13 +204,13 @@ struct RatingViewFromUser: View {
                 .foregroundColor(.yellow)
             Text(String(format: "%.1f", rating))
                 .fontWeight(.semibold)
-            Text("\(reviewCount) reviews") // Corrected from "69 reviews" to use reviewCount
+            Text("\(reviewCount) reviews")
                 .font(.caption)
                 .foregroundColor(.gray)
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 12)
-        .background(Color.white) // Changed from secondarySystemBackground
+        .background(Color.white)
         .cornerRadius(12)
         .overlay(RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.gray.opacity(0.3), lineWidth: 1))
@@ -245,7 +231,7 @@ struct AvailabilityViewFromUser: View {
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 12)
-        .background(Color.white) // Changed from secondarySystemBackground
+        .background(Color.white)
         .cornerRadius(12)
         .overlay(RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.gray.opacity(0.3), lineWidth: 1))
@@ -254,17 +240,17 @@ struct AvailabilityViewFromUser: View {
 
 struct SectionViewFromUser<Content: View>: View {
     let title: String
-    var showAddButton: Bool = false // Not used in user's new version of SectionView, but kept for consistency
+    var showAddButton: Bool = false
     @ViewBuilder let content: Content
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(title)
-                    .font(.headline) // User's version uses .headline
+                    .font(.headline)
                 Spacer()
                 if showAddButton {
-                    Image(systemName: "plus") // User's version uses Image directly
+                    Image(systemName: "plus")
                         .font(.headline)
                 }
             }
@@ -273,7 +259,6 @@ struct SectionViewFromUser<Content: View>: View {
     }
 }
 
-// ReviewCardView from user's code
 struct ReviewCardViewFromUser: View {
     let review: Review
 
@@ -298,33 +283,29 @@ struct ReviewCardViewFromUser: View {
                 .lineLimit(3)
         }
         .padding()
-        .background(Color.white) // Changed from secondarySystemBackground
+        .background(Color.white)
         .cornerRadius(12)
         .overlay(RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.gray.opacity(0.3), lineWidth: 1))
     }
 }
 
-// Borrow Button - Modified to be a NavigationLink
 struct BorrowButtonModified: View {
-    let item: DisplayItem // Pass the item to navigate with
+    let item: DisplayItem
 
     var body: some View {
-        NavigationLink(destination: RequestView(item: item)) { // RequestView is from the other immersive
+        NavigationLink(destination: RequestView(item: item)) {
             Text("Borrow")
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
-                .padding(.vertical, 16) // User's version uses 16
+                .padding(.vertical, 16)
                 .frame(maxWidth: .infinity)
-                .background(Color.orange) // Assuming .appOrange or direct .orange
+                .background(Color.orange)
                 .cornerRadius(12)
         }
     }
 }
-
-
-
 
 struct ItemDetailView_Previews: PreviewProvider {
     static var sampleItem = DisplayItem(id: "123", name: "Orange Trousers", imageName: "DummyProduct", rentalPrice: "Rp 20.000 /day", categoryId: 1, description: "These are some comfortable orange trousers, perfect for a sunny day out. Made from breathable cotton.", isAvailable: true, ownerUid: "owner123")

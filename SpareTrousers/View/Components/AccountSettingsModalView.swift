@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AccountSettingsModalView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel // Use your actual AuthViewModel
+    @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.dismiss) var dismiss
 
     @State private var displayName: String = ""
@@ -17,38 +17,38 @@ struct AccountSettingsModalView: View {
     @State private var showAlert = false
     @State private var alertTitle = ""
     @State private var alertMessage = ""
-    @State private var isSaving = false // To show loading state
+    @State private var isSaving = false
 
     var body: some View {
         NavigationView {
             Form {
                 Section(header: Text("Profile Information")) {
-                                    // Display Name Field with Label
-                                    VStack(alignment: .leading, spacing: 2) { // Added VStack for label and field
+                                    // Display Name Field
+                                    VStack(alignment: .leading, spacing: 2) {
                                         Text("Display Name")
                                             .font(.caption)
                                             .foregroundColor(.gray)
                                         TextField("Enter display name", text: $displayName)
                                             .textContentType(.name)
                                     }
-                                    .padding(.vertical, 4) // Add some vertical padding for the group
+                                    .padding(.vertical, 4)
 
-                                    // Address Field with Label
-                                    VStack(alignment: .leading, spacing: 2) { // Added VStack for label and field
+                                    // Address Field
+                                    VStack(alignment: .leading, spacing: 2) {
                                         Text("Your Address")
                                             .font(.caption)
                                             .foregroundColor(.gray)
                                         TextField("Enter your address", text: $address)
                                             .textContentType(.fullStreetAddress)
                                     }
-                                    .padding(.vertical, 4) // Add some vertical padding for the group
+                                    .padding(.vertical, 4)
                                 }
 
                 Section {
                     Button("Save Changes") {
                         saveChanges()
                     }
-                    .disabled(isSaving) // Disable button while saving
+                    .disabled(isSaving)
                     
                     if isSaving {
                         HStack {
@@ -67,10 +67,8 @@ struct AccountSettingsModalView: View {
                         dismiss()
                     }
                 }
-                // Potentially add a primary save button here too if preferred
             }
             .onAppear {
-                // Initialize fields from AuthViewModel
                 self.displayName = authViewModel.userSession?.displayName ?? ""
                 self.address = authViewModel.userAddress ?? ""
             }
@@ -86,7 +84,7 @@ struct AccountSettingsModalView: View {
 
     private func saveChanges() {
         isSaving = true
-        alertTitle = "" // Reset alert title
+        alertTitle = ""
         
         let newDisplayName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
         let newAddress = address.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -99,19 +97,6 @@ struct AccountSettingsModalView: View {
             isSaving = false
             return
         }
-        
-        // Assume address can be empty or add validation if needed
-        // if newAddress.isEmpty {
-        //     alertTitle = "Validation Error"
-        //     alertMessage = "Address cannot be empty."
-        //     showAlert = true
-        //     isSaving = false
-        //     return
-        // }
-
-        // Call AuthViewModel to update both display name and address
-        // We'll assume AuthViewModel has a combined update function or separate ones.
-        // For this example, let's assume separate update functions.
 
         let dispatchGroup = DispatchGroup()
         var displayNameError: String?
@@ -130,17 +115,9 @@ struct AccountSettingsModalView: View {
 
         // Update Address
         if newAddress != (authViewModel.userAddress ?? "") {
-            dispatchGroup.enter() // Enter even if not strictly async, for pattern consistency
-            // Assuming updateUserAddress is synchronous or we adapt it
-            // For simplicity, let's assume it's synchronous as per original code.
-            // If it were async, it would need a completion handler too.
-            authViewModel.updateUserAddress(newAddress: newAddress) // Assuming this updates a @Published var or similar
-            // If updateUserAddress were async with completion:
-            // authViewModel.updateUserAddress(newAddress: newAddress) { success, error in
-            //     if !success { addressError = error ?? "Failed to update address." }
-            //     dispatchGroup.leave()
-            // }
-            dispatchGroup.leave() // Leave immediately if synchronous
+            dispatchGroup.enter()
+            authViewModel.updateUserAddress(newAddress: newAddress)
+            dispatchGroup.leave()
         }
         
         dispatchGroup.notify(queue: .main) {
@@ -153,8 +130,6 @@ struct AccountSettingsModalView: View {
                 alertTitle = "Success"
                 alertMessage = "Account settings updated successfully."
                 showAlert = true
-                // Optionally dismiss after a short delay or let user dismiss alert
-                // dismiss()
             } else {
                 alertTitle = "Error"
                 alertMessage = messages.joined(separator: "\n")

@@ -21,8 +21,8 @@ class InboxViewModel: ObservableObject {
     private var transactionsListenerHandle_owner: DatabaseHandle?
     private var transactionsListenerHandle_borrower: DatabaseHandle?
     private var currentUserId: String?
-    private var authViewModel_UserDisplayName: String? // To get current user's display name for messages
-    private var authViewModel_UserEmail: String? // Fallback for display name
+    private var authViewModel_UserDisplayName: String?
+    private var authViewModel_UserEmail: String?
     
     private var isoDateFormatter: ISO8601DateFormatter {
         let formatter = ISO8601DateFormatter()
@@ -35,13 +35,11 @@ class InboxViewModel: ObservableObject {
         return formatter
     }
     
-    // Constants for message types
     let MSG_TYPE_LOCAL_BORROWER_RETURN_PROMPT = "local_borrower_return_prompt"
     let MSG_TYPE_LENDER_CONFIRM_RECEIPT_PROMPT = "lender_confirm_receipt_prompt"
     let MSG_TYPE_ITEM_RETURN_COMPLETED = "item_return_completed"
     let MSG_TYPE_LENDER_DISPUTED_RETURN = "lender_disputed_return"
     let MSG_TYPE_RETURN_DISPUTE_LOGGED_FOR_LENDER = "return_dispute_logged_for_lender"
-    // Existing types
     let MSG_TYPE_REQUEST_RECEIVED = "request_received"
     let MSG_TYPE_REQUEST_APPROVED = "request_approved"
     let MSG_TYPE_REQUEST_DECLINED = "request_declined"
@@ -149,7 +147,6 @@ class InboxViewModel: ObservableObject {
         for transaction in self.relevantTransactions {
             guard let endTimeDate = isoDateFormatter.date(from: transaction.endTime) else { continue }
             
-            // Borrower Return Prompt: When endTime is passed and status is still "approved" or "active_rental"
             if transaction.borrowerId == currentUid &&
                 (transaction.requestStatus == "approved" || transaction.requestStatus == "active_rental") &&
                 now >= endTimeDate {
@@ -157,12 +154,12 @@ class InboxViewModel: ObservableObject {
                 if !self.inboxMessages.contains(where: { $0.id == reminderId && $0.type.hasPrefix("local_") }) {
                     localReminders.append(InboxMessage(
                         id: reminderId,
-                        dateLine: "Have you returned '\(transaction.relatedItemId)'?", // Placeholder for item name
+                        dateLine: "Have you returned '\(transaction.relatedItemId)'?",
                         type: MSG_TYPE_LOCAL_BORROWER_RETURN_PROMPT,
-                        showsRejectButton: true, // For "Yes" / "Not Yet"
+                        showsRejectButton: true,
                         relatedTransactionId: transaction.id,
-                        timestamp: endTimeDate.timeIntervalSince1970 + 1, // Place it relevant to end time
-                        isRead: false, lenderName: "System", itemName: transaction.relatedItemId // Placeholder
+                        timestamp: endTimeDate.timeIntervalSince1970 + 1,
+                        isRead: false, lenderName: "System", itemName: transaction.relatedItemId
                     ))
                 }
             }
@@ -183,35 +180,30 @@ class InboxViewModel: ObservableObject {
         }
         
         if didReturn {
-            // 1. Update Transaction status to "pending_lender_confirmation"
+            //  Update Transaction status to "pending_lender_confirmation"
             dbRef.child("transactions").child(transactionId).child("requestStatus").setValue("pending_lender_confirmation") { [weak self] error, _ in
                 guard let self = self else { return }
                 if let error = error { self.handleError("updating transaction for borrower return", error); return }
                 
-                // 2. Send InboxMessage to Owner
+                // Send InboxMessage to Owner
                 let ownerMessageId = UUID().uuidString
-                // Ideally, fetch borrower's display name for a better message
                 let borrowerName = self.authViewModel_UserDisplayName ?? self.authViewModel_UserEmail ?? "A user"
                 let ownerMessage = InboxMessage(
                     id: ownerMessageId,
                     dateLine: "\(borrowerName) states they have returned '\(transaction.relatedItemId)'. Please confirm.",
                     type: self.MSG_TYPE_LENDER_CONFIRM_RECEIPT_PROMPT,
-                    showsRejectButton: true, // For Yes/No confirmation by lender
+                    showsRejectButton: true,
                     relatedTransactionId: transactionId,
                     timestamp: Date().timeIntervalSince1970,
                     isRead: false,
-                    lenderName: borrowerName, // From lender's perspective, this is the borrower
-                    itemName: transaction.relatedItemId // Placeholder
+                    lenderName: borrowerName,
+                    itemName: transaction.relatedItemId
                 )
                 self.sendMessage(ownerMessage, toUser: transaction.ownerId)
                 
-                // 3. Mark borrower's prompt as read/handled (or remove if purely local)
-                self.markMessageAsRead(messageId: message.id) // This will make local reminder "read"
+                self.markMessageAsRead(messageId: message.id)
             }
         } else {
-            // Borrower clicked "Not Yet".
-            // The local prompt will be removed on next merge or marked read.
-            // A more persistent "snooze" or different reminder could be implemented here.
             print("Borrower indicated item not yet returned for transaction: \(transactionId)")
             self.markMessageAsRead(messageId: message.id)
         }
@@ -229,17 +221,17 @@ class InboxViewModel: ObservableObject {
         let itemRef = dbRef.child("items").child(transaction.relatedItemId)
         
         if didReceive {
-            // 1. Update Transaction status to "completed"
+            // Update Transaction status to "completed"
             transactionRef.child("requestStatus").setValue("completed") { [weak self] error, _ in
                 guard let self = self else { return }
                 if let error = error { self.handleError("completing transaction", error); return }
                 
-                // 2. Update Item availability to true
+                // Update Item availability to true
                 itemRef.child("isAvailable").setValue(true) { error, _ in
                     if let error = error { self.handleError("updating item availability", error); /* Continue anyway */ }
                 }
                 
-                // 3. Send confirmation to Borrower
+                // Send confirmation to Borrower
                 let borrowerMessageId = UUID().uuidString
                 let borrowerMessage = InboxMessage(
                     id: borrowerMessageId,
@@ -249,34 +241,34 @@ class InboxViewModel: ObservableObject {
                     relatedTransactionId: transactionId,
                     timestamp: Date().timeIntervalSince1970,
                     isRead: false,
-                    lenderName: "System", // Or lender's name
-                    itemName: transaction.relatedItemId // Placeholder
+                    lenderName: "System",
+                    itemName: transaction.relatedItemId
                 )
                 self.sendMessage(borrowerMessage, toUser: transaction.borrowerId)
-                self.markMessageAsRead(messageId: message.id) // Mark lender's prompt as read
+                self.markMessageAsRead(messageId: message.id)
             }
-        } else { // Lender says item not received
-            // 1. Update Transaction status to "disputed_return"
+        } else {
+            // Update Transaction status to "disputed_return"
             transactionRef.child("requestStatus").setValue("disputed_return") { [weak self] error, _ in
                 guard let self = self else { return }
                 if let error = error { self.handleError("setting transaction to disputed", error); return }
                 
-                // 2. Notify Borrower
+                // Notify Borrower
                 let borrowerMessageId = UUID().uuidString
                 let borrowerMessage = InboxMessage(
                     id: borrowerMessageId,
                     dateLine: "Lender reports '\(transaction.relatedItemId)' not yet received. Please ensure return or contact lender.",
                     type: self.MSG_TYPE_LENDER_DISPUTED_RETURN,
-                    showsRejectButton: false, // Or true if borrower can take action from this message
+                    showsRejectButton: false,
                     relatedTransactionId: transactionId,
                     timestamp: Date().timeIntervalSince1970,
                     isRead: false,
-                    lenderName: "System", // Or lender's name
-                    itemName: transaction.relatedItemId // Placeholder
+                    lenderName: "System",
+                    itemName: transaction.relatedItemId
                 )
                 self.sendMessage(borrowerMessage, toUser: transaction.borrowerId)
                 
-                // 3. Optionally, notify Lender that dispute is logged (or just update their UI)
+                // Optionally, notify Lender that dispute is logged (or just update their UI)
                 let lenderConfirmationId = UUID().uuidString
                 let lenderConfirmationMessage = InboxMessage(
                     id: lenderConfirmationId,
@@ -284,13 +276,13 @@ class InboxViewModel: ObservableObject {
                     type: self.MSG_TYPE_RETURN_DISPUTE_LOGGED_FOR_LENDER,
                     showsRejectButton: false,
                     relatedTransactionId: transactionId,
-                    timestamp: Date().timeIntervalSince1970 + 1, // Slightly later
+                    timestamp: Date().timeIntervalSince1970 + 1,
                     isRead: false,
                     lenderName: "System",
                     itemName: transaction.relatedItemId
                 )
                 self.sendMessage(lenderConfirmationMessage, toUser: transaction.ownerId)
-                self.markMessageAsRead(messageId: message.id) // Mark original prompt as read
+                self.markMessageAsRead(messageId: message.id)
             }
         }
     }
@@ -343,7 +335,7 @@ class InboxViewModel: ObservableObject {
             itemName: String?,
             completion: @escaping (Bool, String?) -> Void
         ) {
-            let messageId = UUID().uuidString // Generate a unique ID for the new message
+            let messageId = UUID().uuidString
             let timestamp = Date().timeIntervalSince1970
     
             let newDummyMessage = InboxMessage(
@@ -353,7 +345,7 @@ class InboxViewModel: ObservableObject {
                 showsRejectButton: showsRejectButton,
                 relatedTransactionId: relatedTransactionId,
                 timestamp: timestamp,
-                isRead: false, // New messages are unread
+                isRead: false,
                 lenderName: lenderName,
                 itemName: itemName
             )
@@ -361,7 +353,6 @@ class InboxViewModel: ObservableObject {
             let userInboxRef = dbRef.child("inbox_messages").child(uid).child(messageId)
     
             do {
-                // Assuming InboxMessage is Encodable
                 let messageData = try JSONEncoder().encode(newDummyMessage)
                 guard let messageDict = try JSONSerialization.jsonObject(with: messageData, options: []) as? [String: Any] else {
                     completion(false, "Failed to create dictionary from message data.")
@@ -382,7 +373,7 @@ class InboxViewModel: ObservableObject {
                 completion(false, error.localizedDescription)
             }
         }
-    // Accept/Reject request methods from user's uploaded InboxViewModel
+
     func acceptRequest(message: InboxMessage) {
         guard let transactionId = message.relatedTransactionId, let currentUid = self.currentUserId else {
             print("Error: Missing transactionId or currentUserID for acceptRequest")
@@ -438,6 +429,5 @@ class InboxViewModel: ObservableObject {
             print("Error: Missing transactionId or currentUserID for rejectRequest")
             return
         }
-        // func acceptReturnReminder(message: InboxMessage) { /* ... (user's existing logic - this will be replaced by new flow) ... */ }
     }
 }

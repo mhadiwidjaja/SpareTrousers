@@ -79,7 +79,6 @@ class AuthViewModel: ObservableObject {
         }
     }
 
-    // Updated register function to include displayName (and address)
     func register(email: String, password: String, displayName: String, address: String) {
         isLoading = true
         errorMessage = nil
@@ -93,21 +92,16 @@ class AuthViewModel: ObservableObject {
                 return
             }
             if let user = authResult?.user {
-                // Set display name in Firebase Authentication profile
                 let changeRequest = user.createProfileChangeRequest()
                 changeRequest.displayName = displayName
                 changeRequest.commitChanges { [weak self] error in
                     guard let self = self else { return }
                     DispatchQueue.main.async {
-                        self.isLoading = false // Set loading to false after all operations
+                        self.isLoading = false
                         if let error = error {
                             self.errorMessage = "Failed to set display name: \(error.localizedDescription)"
-                            // User is created, but display name update failed.
-                            // Still proceed to save other details and set session.
                         }
-                        // Update userSession with the new user, including the intended displayName
                         self.userSession = UserSession(uid: user.uid, email: user.email, displayName: displayName)
-                        // Save user details (email, address, displayName) to Realtime Database
                         self.saveUserDetails(uid: user.uid, email: email, displayName: displayName, address: address)
                     }
                 }
@@ -120,11 +114,10 @@ class AuthViewModel: ObservableObject {
         }
     }
 
-    // Updated to save displayName
     private func saveUserDetails(uid: String, email: String, displayName: String, address: String) {
         let userData: [String: Any] = [
             "email": email,
-            "displayName": displayName, // Save displayName
+            "displayName": displayName,
             "address": address
         ]
         self.ref.child("users").child(uid).setValue(userData) { [weak self] error, _ in
@@ -133,9 +126,7 @@ class AuthViewModel: ObservableObject {
                     self?.errorMessage = "Failed to save user details: \(error.localizedDescription)"
                 } else {
                     print("User details (including displayName and address) saved successfully.")
-                    // Update local state if needed, though publishers should handle it
                     self?.userAddress = address
-                    // If userSession was set before displayName was confirmed from DB:
                     if self?.userSession?.uid == uid {
                          self?.userSession?.displayName = displayName
                     }
@@ -144,7 +135,6 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    // Function to fetch user displayName from Firebase Realtime Database
     func fetchUserDisplayName(uid: String) -> AnyPublisher<String?, Never> {
         Future<String?, Never> { [weak self] promise in
             guard let self = self else { promise(.success(nil)); return }
@@ -212,14 +202,13 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    // In your actual AuthViewModel.swift
     func updateUserDisplayName(newName: String, completion: @escaping (Bool, String?) -> Void) {
         guard let user = Auth.auth().currentUser else {
             completion(false, "No authenticated user found.")
             return
         }
 
-        // 1. Update Firebase Authentication display name
+        // Update Firebase Authentication display name
         let changeRequest = user.createProfileChangeRequest()
         changeRequest.displayName = newName
         changeRequest.commitChanges { [weak self] error in
@@ -229,7 +218,7 @@ class AuthViewModel: ObservableObject {
                 return
             }
 
-            // 2. Update display name in Realtime Database
+            // Update display name in Realtime Database
             let dbRef = Database.database().reference()
             dbRef.child("users").child(user.uid).child("displayName").setValue(newName) { error, _ in
                 if let error = error {
@@ -237,7 +226,7 @@ class AuthViewModel: ObservableObject {
                     return
                 }
 
-                // 3. Update local userSession
+                // Update local userSession
                 DispatchQueue.main.async {
                     self.userSession?.displayName = newName
                     completion(true, nil)

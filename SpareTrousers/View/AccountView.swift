@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-// MARK: - AccountView
 struct AccountView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var isShowingAccountSettingsModal = false

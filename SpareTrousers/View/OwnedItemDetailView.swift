@@ -7,7 +7,7 @@ struct OwnedItemDetailView: View {
     
     @State private var currentPage = 0
     @State private var showingEditItemView = false
-    @EnvironmentObject var homeVM: HomeViewModel // To pass to EditItemsView
+    @EnvironmentObject var homeVM: HomeViewModel
 
     var productImages: [String] {
         var images = [item.imageName]
@@ -80,10 +80,7 @@ struct OwnedItemDetailView: View {
     }
 }
 
-// Make sure ItemDetailHeaderView, ItemInfoPanelView, and Review are defined
-// or accessible in your project as they were in your original ItemDetailView.swift.
-
-// For Preview
+// MARK: - Previews
 struct OwnedItemDetailView_Previews: PreviewProvider {
     static var sampleItem = DisplayItem(
         id: "ownedPreviewID",

@@ -3,7 +3,6 @@
 import SwiftUI
 
 struct HomeView: View {
-    // ViewModel for HomeView's own state (like selectedTab, search text etc.)
     @StateObject private var homeViewModel = HomeViewModel()
     @EnvironmentObject private var authViewModel: AuthViewModel
 
@@ -23,7 +22,7 @@ struct HomeView: View {
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
-        .environmentObject(homeViewModel) // Provides HomeViewModel to children like MyRentalsView for its environment needs
+        .environmentObject(homeViewModel)
     }
 
     @ViewBuilder
@@ -60,8 +59,7 @@ struct HomeView: View {
             }
 
         case .myRentals:
-            // Instantiate MyRentalsView and pass the homeViewModel
-            MyRentalsView(homeViewModel: homeViewModel, authViewModel: authViewModel) // MODIFIED HERE
+            MyRentalsView(homeViewModel: homeViewModel, authViewModel: authViewModel)
 
         case .inbox:
             InboxView()
@@ -76,8 +74,6 @@ struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
         HomeView()
             .environmentObject(AuthViewModel())
-            // homeViewModel is managed by @StateObject within HomeView,
-            // and also provided to the environment for its children.
             .preferredColorScheme(.light)
     }
 }

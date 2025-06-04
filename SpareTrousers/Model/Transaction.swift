@@ -15,7 +15,6 @@ struct Transaction: Identifiable, Codable {
     let relatedItemId: String
     let ownerId: String
     let borrowerId: String
-    // Add a status field, e.g., "pending", "approved", "declined", "completed"
     var requestStatus: String = "pending"
     
     func toDictionary() -> [String: Any] {

@@ -40,7 +40,6 @@ struct ForYouSection: View {
 struct ItemCardView: View {
     let item: DisplayItem
 
-    // ensure two lines of text get enough height
     private var twoLineHeight: CGFloat {
         let f = UIFont.preferredFont(forTextStyle: .headline)
         return f.lineHeight * 2 + f.leading
@@ -62,7 +61,7 @@ struct ItemCardView: View {
                     .lineLimit(2)
                     .multilineTextAlignment(
                         .leading
-                    )  // Ensure left alignment of text
+                    )
                     .frame(minHeight: twoLineHeight, alignment: .leading)
 
                 Text(item.rentalPrice)
@@ -70,7 +69,7 @@ struct ItemCardView: View {
                     .foregroundColor(.appOffGray)
                     .multilineTextAlignment(
                         .leading
-                    )  // Ensure left alignment of text
+                    )
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         }

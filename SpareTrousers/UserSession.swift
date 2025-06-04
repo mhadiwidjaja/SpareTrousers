@@ -9,5 +9,5 @@
 struct UserSession {
     let uid: String
     let email: String?
-    var displayName: String? // Added displayName
+    var displayName: String?
 }

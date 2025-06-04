@@ -5,8 +5,6 @@
 //  Created by student on 03/06/25.
 //
 
-// SpareTrousers/View/EditItemsView.swift
-
 import SwiftUI
 import FirebaseAuth
 

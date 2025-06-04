@@ -5,18 +5,17 @@
 //  Created by Student on 04/06/25.
 //
 
-// BorrowedItemDetailView.swift
 import SwiftUI
-import Combine // Import Combine for AnyCancellable
+import Combine
 
 struct BorrowedItemDetailView: View {
     let item: DisplayItem
     let transaction: Transaction
     
     @State private var currentPage = 0
-    @EnvironmentObject var authViewModel: AuthViewModel // <<--- ADDED: Access AuthViewModel
-    @State private var lenderDisplayName: String = "Loading..." // <<--- ADDED: State for lender's name
-    @State private var cancellables = Set<AnyCancellable>() // <<--- ADDED: To store Combine subscriptions
+    @EnvironmentObject var authViewModel: AuthViewModel
+    @State private var lenderDisplayName: String = "Loading..."
+    @State private var cancellables = Set<AnyCancellable>()
 
     var productImages: [String] {
         var images = [item.imageName]
@@ -90,7 +89,7 @@ struct BorrowedItemDetailView: View {
                             InfoRow(label: "Borrowed On:", value: formatDisplayDate(transaction.transactionDate, using: transactionDateFormatter))
                             InfoRow(label: "Rental Starts:", value: formatDisplayDate(transaction.startTime, using: dateFormatter))
                             InfoRow(label: "Rental Ends:", value: formatDisplayDate(transaction.endTime, using: dateFormatter))
-                            InfoRow(label: "Lender:", value: lenderDisplayName) // <<--- MODIFIED: Use state variable
+                            InfoRow(label: "Lender:", value: lenderDisplayName)
                         }
                         .padding()
                         .background(Color.appWhite)
@@ -105,12 +104,11 @@ struct BorrowedItemDetailView: View {
         }
         .navigationTitle(item.name)
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear { // <<--- ADDED: Call to fetch lender's name
+        .onAppear {
             fetchLenderName()
         }
     }
     
-    // <<--- ADDED: Function to fetch lender's name --- >>
     private func fetchLenderName() {
         guard let ownerUid = item.ownerUid, !ownerUid.isEmpty else {
             self.lenderDisplayName = "N/A"
@@ -123,9 +121,7 @@ struct BorrowedItemDetailView: View {
                 if let name = fetchedName, !name.isEmpty {
                     self.lenderDisplayName = name
                 } else {
-                    // Fallback if name is nil or empty. You might want to fetch email here if desired.
-                    // For now, using UID as a last resort or "Unknown".
-                    self.lenderDisplayName = "Lender (\(ownerUid.prefix(6))...)" // Or simply ownerUid, or "Unknown"
+                    self.lenderDisplayName = "Lender (\(ownerUid.prefix(6))...)"
                 }
             }
             .store(in: &cancellables)
@@ -139,7 +135,6 @@ struct BorrowedItemDetailView: View {
     }
 }
 
-// Helper view for consistent row display in transaction details
 struct InfoRow: View {
     let label: String
     let value: String
@@ -158,7 +153,7 @@ struct InfoRow: View {
     }
 }
 
-// Extension to remove duplicates from an array, useful for productImages
+// Extension to remove duplicates from an array
 extension Array where Element: Hashable {
     func removingDuplicates() -> [Element] {
         var addedDict = [Element: Bool]()
@@ -169,7 +164,7 @@ extension Array where Element: Hashable {
 }
 
 
-// MARK: - Preview Provider for BorrowedItemDetailView
+// MARK: - Preview
 struct BorrowedItemDetailView_Previews: PreviewProvider {
     static var sampleItem = DisplayItem(
         id: "borrowedItem001",
@@ -179,7 +174,7 @@ struct BorrowedItemDetailView_Previews: PreviewProvider {
         categoryId: 2,
         description: "A classic 50mm f/1.8 lens, currently being borrowed. Perfect for portraits and low light photography.",
         isAvailable: false,
-        ownerUid: "ownerLender123_firebase_uid" // Ensure this is a unique ID for preview
+        ownerUid: "ownerLender123_firebase_uid"
     )
     
     static var sampleTransaction = Transaction(
@@ -188,23 +183,18 @@ struct BorrowedItemDetailView_Previews: PreviewProvider {
         startTime: "2025-06-05T14:00:00Z",
         endTime: "2025-06-10T18:00:00Z",
         relatedItemId: "borrowedItem001",
-        ownerId: "ownerLender123_firebase_uid", // Match item's ownerUid
+        ownerId: "ownerLender123_firebase_uid",
         borrowerId: "currentUserBorrower456",
         requestStatus: "approved"
     )
 
     static var previews: some View {
-        let mockAuthViewModel = AuthViewModel() // Create a mock AuthViewModel
-
-        // To make the preview more realistic for lenderDisplayName, you could
-        // potentially modify the mockAuthViewModel or its fetchUserDisplayName
-        // for preview purposes, but that's more involved for a simple preview.
-        // The `onAppear` call will execute in the preview.
+        let mockAuthViewModel = AuthViewModel()
 
         NavigationView {
             BorrowedItemDetailView(item: sampleItem, transaction: sampleTransaction)
         }
-        .environmentObject(mockAuthViewModel) // <<--- MODIFIED: Provide AuthViewModel to the environment
+        .environmentObject(mockAuthViewModel)
         .environmentObject(HomeViewModel())
     }
 }

@@ -169,7 +169,7 @@ withCancel: { [weak self] error in
             authViewModel.fetchUserDisplayName(uid: ownerUid)
                 .receive(
                     on: DispatchQueue.main
-                ) // Ensure UI updates on main thread
+                )
                 .sink(
 receiveCompletion: { completion in
                     if case .failure(let error) = completion {
@@ -202,7 +202,7 @@ receiveValue: { [weak self] displayName in
             $0.ownerUid == uid
         }
                 
-        DispatchQueue.main.async { // Ensure UI updates on main thread
+        DispatchQueue.main.async {
             self.myLendingItems = filteredItems
         }
         print(

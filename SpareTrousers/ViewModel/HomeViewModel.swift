@@ -80,13 +80,11 @@ class HomeViewModel: ObservableObject {
                               let imageName = itemDict["imageName"] as? String,
                               let rentalPrice = itemDict["rentalPrice"] as? String,
                               let fbCategoryId = itemDict["categoryId"] as? Int,
-                              // Fetch description, provide a default if not present
                               let description = itemDict["description"] as? String else {
                             print("Warning: Missing or invalid field(s) for item with Firebase key: \(itemFirebaseKey). Data: \(itemDict)")
                             continue
                         }
                         
-                        // Optionally fetch other fields like isAvailable and ownerUid
                         let isAvailable = itemDict["isAvailable"] as? Bool
                         let ownerUid = itemDict["ownerUid"] as? String
 
@@ -96,7 +94,7 @@ class HomeViewModel: ObservableObject {
                                                             imageName: imageName,
                                                             rentalPrice: rentalPrice,
                                                             categoryId: fbCategoryId,
-                                                            description: description, // Pass description
+                                                            description: description,
                                                             isAvailable: isAvailable,
                                                             ownerUid: ownerUid
                                                            ))
@@ -231,7 +229,6 @@ class HomeViewModel: ObservableObject {
         }
         
         var dataToUpdate = itemData
-        // dataToUpdate["lastUpdated"] = ISO8601DateFormatter().string(from: Date()) // Example if you want to track updates
         
         dbRef.child("items").child(itemId).updateChildValues(dataToUpdate) { error, _ in
             DispatchQueue.main.async {
