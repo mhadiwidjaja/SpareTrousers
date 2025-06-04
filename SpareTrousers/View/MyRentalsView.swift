@@ -90,9 +90,7 @@ struct MyRentalsView: View {
                                         id: \.item.id
                                     ) { entry in
                                         NavigationLink(
-                                            destination: ItemDetailView(
-                                                item: entry.item
-                                            )
+                                            destination: BorrowedItemDetailView(item: entry.item, transaction: entry.transaction) // <<-- Changed line
                                         ) {
                                             RentalRow(item: entry.item,
                                                       transaction: entry.transaction,
