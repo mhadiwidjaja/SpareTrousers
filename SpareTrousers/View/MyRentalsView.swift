@@ -1,5 +1,3 @@
-// mhadiwidjaja/sparetrousers/SpareTrousers-a561ff476a166c8bc23b8d4c7bfb8fb50ec5c30f/SpareTrousers/View/MyRentalsView.swift
-
 import SwiftUI
 import FirebaseAuth
 
@@ -84,19 +82,16 @@ struct MyRentalsView: View {
                                 .frame(maxWidth: .infinity, alignment: .center)
                             } else {
                                 VStack(spacing: 2) {
-                                    // Updated ForEach to pass lenderDisplayName
                                     ForEach(
                                         myRentalVM.myBorrowedEntries,
                                         id: \.item.id
                                     ) { entry in
                                         NavigationLink(
-                                            destination: ItemDetailView(
-                                                item: entry.item
-                                            )
+                                            destination: BorrowedItemDetailView(item: entry.item, transaction: entry.transaction)
                                         ) {
                                             RentalRow(item: entry.item,
                                                       transaction: entry.transaction,
-                                                      lenderDisplayName: entry.lenderDisplayName, // Pass display name
+                                                      lenderDisplayName: entry.lenderDisplayName,
                                                       isBorrowing: true)
                                         }
                                     }
@@ -188,22 +183,70 @@ struct RentalRow: View {
     }
     
     private var isoDateFormatter: ISO8601DateFormatter {
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds, .withTimeZone]
-            return formatter
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [
+            .withInternetDateTime,
+            .withFractionalSeconds
+        ]
+        let alternativeFormatter = ISO8601DateFormatter()
+        alternativeFormatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }
+    
+    private func parseEndTime(_ dateString: String) -> Date? {
+        let primaryFormatter = ISO8601DateFormatter()
+        primaryFormatter.formatOptions = [
+            .withInternetDateTime,
+            .withFractionalSeconds,
+            .withTimeZone,
+            .withDashSeparatorInDate,
+            .withColonSeparatorInTime,
+            .withColonSeparatorInTimeZone
+        ]
+
+        if let date = primaryFormatter.date(from: dateString) {
+            return date
         }
+        
+        return nil
+    }
 
     private func formatTransactionDate(_ dateString: String?) -> String {
-            guard let dateStr = dateString, let date = isoDateFormatter.date(from: dateStr) else {
-                let simplerFormatter = ISO8601DateFormatter()
-                simplerFormatter.formatOptions = [.withInternetDateTime, .withTimeZone]
-                if let simplerDateStr = dateString, let simplerDate = simplerFormatter.date(from: simplerDateStr) {
-                    return dateFormatter.string(from: simplerDate)
-                }
-                return "N/A"
-            }
-            return dateFormatter.string(from: date)
+        guard let dateStr = dateString, let date = parseEndTime(dateStr) else {
+            return "N/A"
         }
+        return dateFormatter.string(from: date)
+    }
+    
+    private var rentalStatus: (text: String, color: Color) {
+        if !isBorrowing {
+            if !(item?.isAvailable ?? true) {
+                return ("Status: Currently Rented Out", .gray)
+            }
+            return ("Status: Available", .green)
+        }
+
+        guard let currentTransaction = self.transaction else {
+            return ("Status: Details Unavailable", .orange)
+        }
+        let endTimeString = currentTransaction.endTime
+
+        guard let endTimeDate = isoDateFormatter.date(from: endTimeString) else {
+            return ("Status: Invalid Date", .orange)
+        }
+
+        let calendar = Calendar.current
+        if calendar.isDateInToday(endTimeDate) {
+            return ("Status: Rent due today", .red)
+        } else if calendar.isDateInTomorrow(endTimeDate) {
+            return ("Status: Rent due tomorrow", .orange)
+        } else if endTimeDate < Date() {
+            return ("Status: Overdue", .red)
+        } else {
+            let formattedDate = dateFormatter.string(from: endTimeDate)
+            return ("Status: Rented until \(formattedDate)", .blue)
+        }
+    }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -220,9 +263,11 @@ struct RentalRow: View {
                     .foregroundColor(.appBlack)
 
                 if isBorrowing {
-                    Text("Lender: \(lenderDisplayName ?? item?.ownerUid ?? "-")")
-                        .font(.subheadline)
-                        .foregroundColor(.appOffGray)
+                    Text(
+                        "Lender: \(lenderDisplayName ?? item?.ownerUid ?? "-")"
+                    )
+                    .font(.subheadline)
+                    .foregroundColor(.appOffGray)
                     Text(
                         "Rented until: \(formatTransactionDate(transaction?.endTime))"
                     )
@@ -239,31 +284,11 @@ struct RentalRow: View {
 
                 HStack(spacing: 4) {
                     Circle()
-                        .fill(
-                            isBorrowing ? Color.red : (
-                                (
-                                    item?.isAvailable ?? false
-                                ) ? Color.green : Color.gray
-                            )
-                        )
+                        .fill(rentalStatus.color)
                         .frame(width: 10, height: 10)
-                    if isBorrowing {
-                        Text(
-                            "Status: Rent due today"
-                        )
+                    Text(rentalStatus.text)
                         .font(.caption2)
                         .foregroundColor(.appBlack)
-                    } else {
-                        if item?.isAvailable ?? false {
-                            Text("Status: Available")
-                                .font(.caption2)
-                                .foregroundColor(.appBlack)
-                        } else {
-                            Text("Status: Unavailable")
-                                .font(.caption2)
-                                .foregroundColor(.appBlack)
-                        }
-                    }
                 }
             }
 
