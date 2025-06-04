@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+
+
+
 struct InboxView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @StateObject private var viewModel = InboxViewModel()
@@ -33,21 +36,26 @@ struct InboxView: View {
             }
             .background(Color.appOffWhite.edgesIgnoringSafeArea(.all))
             .sheet(isPresented: $showingAddDummyMessageModal) {
+                // Pass the necessary ViewModels to the modal
                 AddDummyMessageModalView(inboxViewModel: viewModel, authViewModel: authViewModel)
             }
             .onAppear {
                 if let userId = authViewModel.userSession?.uid {
-                    viewModel.subscribeToInboxMessages(forUser: userId)
+                    // Pass display name and email for message generation context
+                    viewModel.setupListeners(
+                        forUser: userId,
+                        userDisplayName: authViewModel.userSession?.displayName,
+                        userEmail: authViewModel.userSession?.email
+                    )
                 } else {
                     viewModel.errorMessage = "User not logged in."
-                    print("InboxView: No user logged in to fetch messages for.")
                 }
             }
         }
     }
 }
 
-// MARK: - Extracted Subviews for InboxView
+// InboxHeaderView remains the same as in 'swiftui_inbox_view' (Updated Design)
 
 struct InboxHeaderView: View {
     let topSectionCornerRadius: CGFloat
@@ -72,88 +80,60 @@ struct InboxHeaderView: View {
                     .shadow(color: .appBlack, radius: 1)
                     .shadow(color: .appBlack, radius: 1)
                 Spacer()
-                Button {
-                    showingAddDummyMessageModal = true
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.appWhite)
+                Button { showingAddDummyMessageModal = true } label: {
+                    Image(systemName: "plus.circle.fill").font(.title2).foregroundColor(.appWhite)
                 }
                 .padding(.trailing, 5)
-                
-                Image("SpareTrousers")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 50, height: 50)
+                Image("SpareTrousers").resizable().scaledToFit().frame(width: 50, height: 50)
             }
             .padding(.horizontal)
         }
-        .padding(.bottom, 10)
-        .background(Color.appBlue.edgesIgnoringSafeArea(.top))
-        .clipShape(
-            RoundedCorner(
-                radius: topSectionCornerRadius,
-                corners: [.bottomLeft, .bottomRight]
-            )
-        )
+        .padding(.bottom, 10).background(Color.appBlue.edgesIgnoringSafeArea(.top))
+        .clipShape(RoundedCorner(radius: topSectionCornerRadius, corners: [.bottomLeft, .bottomRight]))
     }
 }
 
+// InboxContentView remains largely the same, displaying messages from viewModel
 struct InboxContentView: View {
-    @ObservedObject var viewModel: InboxViewModel // Use @ObservedObject here
+    @ObservedObject var viewModel: InboxViewModel
     let topSectionCornerRadius: CGFloat
-    let geo: GeometryProxy // Receive GeometryProxy
+    let geo: GeometryProxy
 
     var body: some View {
         ZStack(alignment: .top) {
-            Color.appWhite
-                .clipShape(
-                    RoundedCorner(
-                        radius: topSectionCornerRadius,
-                        corners: [.topLeft, .topRight]
-                    )
-                )
-
-            if viewModel.isLoading {
-                ProgressView("Loading messages...")
-                    .padding(.top, topSectionCornerRadius + 20)
+            Color.appWhite.clipShape(RoundedCorner(radius: topSectionCornerRadius, corners: [.topLeft, .topRight]))
+            if viewModel.isLoading && viewModel.inboxMessages.isEmpty { // Show loading only if messages are empty
+                ProgressView("Loading messages...").padding(.top, topSectionCornerRadius + 20)
             } else if let errorMessage = viewModel.errorMessage {
-                Text("Error: \(errorMessage)")
-                    .foregroundColor(.red)
-                    .padding()
-                    .padding(.top, topSectionCornerRadius)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                    .multilineTextAlignment(.center)
+                Text("Error: \(errorMessage)").foregroundColor(.red).padding().padding(.top, topSectionCornerRadius)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center).multilineTextAlignment(.center)
             } else if viewModel.inboxMessages.isEmpty {
-                Text("Your inbox is empty.")
-                    .foregroundColor(.appOffGray)
-                    .padding()
-                    .padding(.top, topSectionCornerRadius + 20)
+                Text("Your inbox is empty.").foregroundColor(.appOffGray).padding().padding(.top, topSectionCornerRadius + 20)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             } else {
                 ScrollView {
                     VStack(spacing: 12) {
                         ForEach(viewModel.inboxMessages) { message in
-                            InboxMessageRow(message: message, viewModel: viewModel)
+                            InboxMessageRow(message: message, viewModel: viewModel, authViewModel: _authViewModel) // Pass AuthViewModel
                                 .padding(.horizontal)
                         }
                     }
-                    .padding(.top, topSectionCornerRadius + 10)
-                    .padding(.bottom, 80)
+                    .padding(.top, topSectionCornerRadius + 10).padding(.bottom, 80)
                 }
             }
         }
-        .frame(width: geo.size.width, height: geo.size.height + 86)
-        .ignoresSafeArea(edges: .bottom)
+        .frame(width: geo.size.width, height: geo.size.height + 86).ignoresSafeArea(edges: .bottom)
     }
+    // Need to get AuthViewModel to pass to InboxMessageRow if it needs current user's display name
+    @EnvironmentObject var _authViewModel: AuthViewModel
 }
 
 
-// MARK: - InboxMessageRow and AddDummyMessageModalView (Assumed to be the same as previous version)
-
+// MARK: - Updated InboxMessageRow
 struct InboxMessageRow: View {
     let message: InboxMessage
     @ObservedObject var viewModel: InboxViewModel
+    @ObservedObject var authViewModel: AuthViewModel // To get current user's display name for context
 
     private var displayTimestamp: String {
         let date = Date(timeIntervalSince1970: message.timestamp)
@@ -171,176 +151,147 @@ struct InboxMessageRow: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(message.dateLine)
-                    .font(.headline)
-                    .fontWeight(message.isRead ? .regular : .bold)
-                    .lineLimit(2)
+                    .font(.headline).fontWeight(message.isRead ? .regular : .bold).lineLimit(3) // Allow more lines
 
                 if let itemName = message.itemName {
                     Text("Item: \(itemName)")
                         .font(.subheadline).foregroundColor(.appOffGray).lineLimit(1)
                 }
-                if let otherParty = message.lenderName {
-                     Text("User: \(otherParty)")
+                // Displaying the "other party" in the message
+                if let otherPartyName = message.lenderName { // 'lenderName' stores the name of the other party
+                    Text(message.type.contains("borrower") ? "To: \(otherPartyName)" : "From: \(otherPartyName)")
                         .font(.caption).foregroundColor(.appOffGray)
                 }
-                Text(displayTimestamp)
-                    .font(.caption2).foregroundColor(.appOffGray)
+                Text(displayTimestamp).font(.caption2).foregroundColor(.appOffGray)
             }
             Spacer()
 
-            if message.type == "request_received" {
-                HStack(spacing: 12) {
-                    Button {
-                        viewModel.acceptRequest(message: message)
-                    } label: {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 18, weight: .bold))
-                            .frame(width: 30, height: 30).background(Color.green.opacity(0.8))
-                            .foregroundColor(.white).cornerRadius(6)
-                    }
-                    if message.showsRejectButton {
-                        Button {
-                            viewModel.rejectRequest(message: message)
-                        } label: {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 18, weight: .bold))
-                                .frame(width: 30, height: 30).background(Color.red.opacity(0.8))
-                                .foregroundColor(.white).cornerRadius(6)
-                        }
-                    }
-                }
-            } else if message.type == "reminder" {
-                if !message.showsRejectButton {
-                     Button {
-                         viewModel.acceptReturnReminder(message: message)
-                     } label: {
-                         Image(systemName: "arrow.uturn.left")
-                             .font(.system(size: 18, weight: .bold))
-                             .frame(width: 30, height: 30)
-                             .background(Color.blue.opacity(0.8))
-                             .foregroundColor(.white)
-                             .cornerRadius(6)
-                     }
-                }
+            // Action Buttons based on message type
+
+            if message.type == viewModel.MSG_TYPE_REQUEST_RECEIVED && message.showsRejectButton { // Lender action for new request
+                actionButtons(acceptAction: { viewModel.acceptRequest(message: message) },
+                              rejectAction: { viewModel.rejectRequest(message: message) }) // Removed redundant text params
+            } else if message.type == viewModel.MSG_TYPE_LOCAL_BORROWER_RETURN_PROMPT { // Borrower action
+                actionButtons(acceptAction: { viewModel.handleBorrowerReturnedAction(message: message, didReturn: true) },
+                              rejectAction: { viewModel.handleBorrowerReturnedAction(message: message, didReturn: false) })
+            } else if message.type == viewModel.MSG_TYPE_LENDER_CONFIRM_RECEIPT_PROMPT && message.showsRejectButton { // Lender action
+                actionButtons(acceptAction: { viewModel.handleLenderConfirmReceiptAction(message: message, didReceive: true) },
+                              rejectAction: { viewModel.handleLenderConfirmReceiptAction(message: message, didReceive: false) })
             }
+            // Add other message type button logic here if needed
         }
-        .padding()
-        .background(Color.appWhite)
-        .cornerRadius(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(message.isRead ? Color.appOffWhite : Color.appBlack.opacity(0.7),
-                        lineWidth: message.isRead ? 1 : 2)
-        )
+        .padding().background(Color.appWhite).cornerRadius(10)
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(message.isRead ? Color.appOffWhite : Color.appBlack.opacity(0.7), lineWidth: message.isRead ? 1 : 2))
         .opacity(message.isRead ? 0.8 : 1.0)
         .contentShape(Rectangle())
         .onTapGesture {
-            if !message.isRead {
-                viewModel.markMessageAsRead(messageId: message.id)
+            if !message.isRead { viewModel.markMessageAsRead(messageId: message.id) }
+            // TODO: Navigation to details
+        }
+    }
+
+    // Helper for creating action buttons
+    @ViewBuilder
+    private func actionButtons(acceptAction: @escaping () -> Void, rejectAction: @escaping () -> Void) -> some View {
+        HStack(spacing: 12) { // Matched spacing from your snippet example if different
+            Button(action: acceptAction) {
+                Image(systemName: "checkmark") // Changed from checkmark.circle.fill
+                    .font(.system(size: 18, weight: .bold)) // Matched font
+                    .frame(width: 30, height: 30)          // Matched frame
+                    .background(Color.green.opacity(0.8))   // Matched background
+                    .foregroundColor(.white)                // Matched foreground
+                    .cornerRadius(6)                        // Matched cornerRadius
             }
-            print("Row tapped for message: \(message.id), related transaction: \(message.relatedTransactionId ?? "None")")
+            .buttonStyle(BorderlessButtonStyle())
+
+            if message.showsRejectButton {
+                Button(action: rejectAction) {
+                    Image(systemName: "xmark") // Changed from xmark.circle.fill
+                        .font(.system(size: 18, weight: .bold)) // Matched font
+                        .frame(width: 30, height: 30)          // Matched frame
+                        .background(Color.red.opacity(0.8))     // Matched background
+                        .foregroundColor(.white)                // Matched foreground
+                        .cornerRadius(6)                        // Matched cornerRadius
+                }
+                .buttonStyle(BorderlessButtonStyle())
+            }
         }
     }
 }
 
+
+// AddDummyMessageModalView remains the same as in 'swiftui_inbox_view' (Updated Design with Add Dummy Message Modal)
 struct AddDummyMessageModalView: View {
     @ObservedObject var inboxViewModel: InboxViewModel
     @ObservedObject var authViewModel: AuthViewModel
     @Environment(\.dismiss) var dismiss
-
     @State private var dateLine: String = "New item request!"
     @State private var messageType: String = "request_received"
     @State private var showsRejectButton: Bool = true
     @State private var relatedTransactionId: String = ""
     @State private var lenderName: String = ""
     @State private var itemName: String = "Sample Item"
-    
     @State private var showAlert = false
     @State private var alertMessage = ""
     @State private var submissionSuccessful = false
-
     let availableMessageTypes = ["request_received", "request_approved", "request_declined", "reminder", "general_info"]
 
     var body: some View {
         NavigationView {
             Form {
                 Section(header: Text("Message Details")) {
-                    TextField("Message Line (e.g., 'User X wants Y')", text: $dateLine)
+                    TextField("Message Line", text: $dateLine)
                     Picker("Message Type", selection: $messageType) {
-                        ForEach(availableMessageTypes, id: \.self) { type in
-                            Text(type.replacingOccurrences(of: "_", with: " ").capitalized)
-                        }
+                        ForEach(availableMessageTypes, id: \.self) { type in Text(type.replacingOccurrences(of: "_", with: " ").capitalized) }
                     }
-                    .onChange(of: messageType) { newValue in
-                        showsRejectButton = (newValue == "request_received")
-                    }
-                    
-                    Toggle("Shows Reject Button", isOn: $showsRejectButton)
-                        .disabled(messageType != "request_received")
-
+                    .onChange(of: messageType) { newValue in showsRejectButton = (newValue == "request_received") }
+                    Toggle("Shows Reject Button", isOn: $showsRejectButton).disabled(messageType != "request_received")
                     TextField("Related Item Name (Optional)", text: $itemName)
                     TextField("Other User's Name (Optional)", text: $lenderName)
                     TextField("Related Transaction ID (Optional)", text: $relatedTransactionId)
                 }
-
-                Section {
-                    Button("Add Dummy Message to My Inbox") {
-                        addDummyMessage()
-                    }
-                    .frame(maxWidth: .infinity, alignment: .center)
-                }
+                Section { Button("Add Dummy Message to My Inbox") { addDummyMessage() }.frame(maxWidth: .infinity, alignment: .center) }
             }
-            .navigationTitle("New Dummy Message")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("New Dummy Message").navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Add") { addDummyMessage() }
-                }
+                ToolbarItem(placement: .navigationBarLeading) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .navigationBarTrailing) { Button("Add") { addDummyMessage() } }
             }
             .alert(isPresented: $showAlert) {
-                Alert(title: Text(submissionSuccessful ? "Success" : "Error"),
-                      message: Text(alertMessage),
-                      dismissButton: .default(Text("OK")) {
-                    if submissionSuccessful { dismiss() }
-                })
+                Alert(title: Text(submissionSuccessful ? "Success" : "Error"), message: Text(alertMessage),
+                      dismissButton: .default(Text("OK")) { if submissionSuccessful { dismiss() } })
             }
             .onAppear {
-                if let currentUserName = authViewModel.userSession?.displayName {
-                    self.lenderName = currentUserName
-                } else if let currentUserEmail = authViewModel.userSession?.email {
-                     self.lenderName = currentUserEmail
-                }
+                if let name = authViewModel.userSession?.displayName { self.lenderName = name }
+                else if let email = authViewModel.userSession?.email { self.lenderName = email }
             }
         }
     }
 
-    func addDummyMessage() {
-        guard let currentUid = authViewModel.userSession?.uid else {
-            alertMessage = "You need to be logged in to add a message."
-            submissionSuccessful = false; showAlert = true; return
-        }
-        if dateLine.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            alertMessage = "Message line cannot be empty."
-            submissionSuccessful = false; showAlert = true; return
-        }
-        inboxViewModel.createAndSaveDummyMessage(
-            forUserUid: currentUid,
-            dateLine: dateLine, type: messageType, showsRejectButton: showsRejectButton,
-            relatedTransactionId: relatedTransactionId.isEmpty ? nil : relatedTransactionId,
-            lenderName: lenderName.isEmpty ? nil : lenderName,
-            itemName: itemName.isEmpty ? nil : itemName
-        ) { success, errorString in
-            if success {
-                alertMessage = "Dummy message added successfully!"; submissionSuccessful = true
-            } else {
-                alertMessage = errorString ?? "Failed to add dummy message."; submissionSuccessful = false
+        func addDummyMessage() {
+            guard let currentUid = authViewModel.userSession?.uid else {
+                alertMessage = "You need to be logged in to add a message."
+                submissionSuccessful = false; showAlert = true; return
             }
-            showAlert = true
+            if dateLine.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                alertMessage = "Message line cannot be empty."
+                submissionSuccessful = false; showAlert = true; return
+            }
+            inboxViewModel.createAndSaveDummyMessage(
+                forUserUid: currentUid,
+                dateLine: dateLine, type: messageType, showsRejectButton: showsRejectButton,
+                relatedTransactionId: relatedTransactionId.isEmpty ? nil : relatedTransactionId,
+                lenderName: lenderName.isEmpty ? nil : lenderName,
+                itemName: itemName.isEmpty ? nil : itemName
+            ) { success, errorString in
+                if success {
+                    alertMessage = "Dummy message added successfully!"; submissionSuccessful = true
+                } else {
+                    alertMessage = errorString ?? "Failed to add dummy message."; submissionSuccessful = false
+                }
+                showAlert = true
+            }
         }
-    }
 }
 
 
@@ -349,8 +300,6 @@ struct InboxView_Previews: PreviewProvider {
     static var previews: some View {
         let mockAuthViewModel = AuthViewModel()
         mockAuthViewModel.userSession = UserSession(uid: "previewUserID", email: "preview@example.com", displayName: "Preview User")
-        
-        return InboxView()
-            .environmentObject(mockAuthViewModel)
+        return InboxView().environmentObject(mockAuthViewModel)
     }
 }

@@ -14,158 +14,383 @@ class InboxViewModel: ObservableObject {
     @Published var inboxMessages: [InboxMessage] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
-
+    
+    private var relevantTransactions: [Transaction] = []
     private var dbRef: DatabaseReference!
     private var messagesListenerHandle: DatabaseHandle?
+    private var transactionsListenerHandle_owner: DatabaseHandle?
+    private var transactionsListenerHandle_borrower: DatabaseHandle?
     private var currentUserId: String?
-
+    private var authViewModel_UserDisplayName: String? // To get current user's display name for messages
+    private var authViewModel_UserEmail: String? // Fallback for display name
+    
+    private var isoDateFormatter: ISO8601DateFormatter {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }
+    private var humanReadableDateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium; formatter.timeStyle = .short
+        return formatter
+    }
+    
+    // Constants for message types
+    let MSG_TYPE_LOCAL_BORROWER_RETURN_PROMPT = "local_borrower_return_prompt"
+    let MSG_TYPE_LENDER_CONFIRM_RECEIPT_PROMPT = "lender_confirm_receipt_prompt"
+    let MSG_TYPE_ITEM_RETURN_COMPLETED = "item_return_completed"
+    let MSG_TYPE_LENDER_DISPUTED_RETURN = "lender_disputed_return"
+    let MSG_TYPE_RETURN_DISPUTE_LOGGED_FOR_LENDER = "return_dispute_logged_for_lender"
+    // Existing types
+    let MSG_TYPE_REQUEST_RECEIVED = "request_received"
+    let MSG_TYPE_REQUEST_APPROVED = "request_approved"
+    let MSG_TYPE_REQUEST_DECLINED = "request_declined"
+    
+    
     init() {
         dbRef = Database.database().reference()
     }
-
-    func subscribeToInboxMessages(forUser uid: String) {
-        // If already listening for this user, or a different user, first remove old listener
-        if let handle = messagesListenerHandle {
-            if let previousUid = currentUserId {
-                 dbRef.child("inbox_messages").child(previousUid).removeObserver(withHandle: handle)
-            } else { // Should not happen if currentUserId is managed properly
-                 dbRef.child("inbox_messages").removeObserver(withHandle: handle) // General removal if UID was unclear
-            }
-            messagesListenerHandle = nil
-        }
+    
+    func setupListeners(forUser uid: String, userDisplayName: String?, userEmail: String?) {
+        if currentUserId == uid && messagesListenerHandle != nil { return }
+        unsubscribeAll()
+        currentUserId = uid
+        authViewModel_UserDisplayName = userDisplayName
+        authViewModel_UserEmail = userEmail
         
-        currentUserId = uid // Store current user ID
-        isLoading = true
-        errorMessage = nil
-        inboxMessages = [] // Clear previous messages
-
+        subscribeToInboxMessages(forUser: uid)
+        subscribeToUserTransactions(forUser: uid)
+    }
+    
+    private func subscribeToInboxMessages(forUser uid: String) {
+        isLoading = true; errorMessage = nil
         let userMessagesRef = dbRef.child("inbox_messages").child(uid)
-        
         messagesListenerHandle = userMessagesRef.observe(.value, with: { [weak self] snapshot in
             guard let self = self else { return }
-            print("InboxViewModel: Received inbox messages snapshot for user \(uid)")
             self.isLoading = false
-            var fetchedMessages: [InboxMessage] = []
-
+            var fetchedFirebaseMessages: [InboxMessage] = []
             if snapshot.exists(), let children = snapshot.children.allObjects as? [DataSnapshot] {
-                for childSnapshot in children {
-                    if let messageData = childSnapshot.value as? [String: Any] {
-                        // Use the failable initializer from your InboxMessage struct
-                        if let message = InboxMessage(id: childSnapshot.key, dictionary: messageData) {
-                            fetchedMessages.append(message)
-                        } else {
-                            print("InboxViewModel: Failed to parse message with ID \(childSnapshot.key), data: \(messageData)")
-                        }
+                children.forEach { childSnapshot in
+                    if let messageData = childSnapshot.value as? [String: Any],
+                       let message = InboxMessage(id: childSnapshot.key, dictionary: messageData) {
+                        fetchedFirebaseMessages.append(message)
                     }
                 }
-            } else {
-                print("InboxViewModel: No messages found for user \(uid) or snapshot is empty.")
             }
-            
-            // Sort messages by timestamp, newest first
-            self.inboxMessages = fetchedMessages.sorted(by: { $0.timestamp > $1.timestamp })
-            if self.inboxMessages.isEmpty && snapshot.exists() {
-                print("InboxViewModel: Messages were present in snapshot but parsing failed or resulted in empty array.")
-            } else if self.inboxMessages.isEmpty {
-                 print("InboxViewModel: Inbox is empty for user \(uid).")
-            }
-
-        }) { [weak self] error in
-            guard let self = self else { return }
-            DispatchQueue.main.async {
-                self.isLoading = false
-                self.errorMessage = "Error fetching inbox messages: \(error.localizedDescription)"
-                print(self.errorMessage!)
-            }
+            self.inboxMessages = fetchedFirebaseMessages
+            self.generateAndMergeLocalReminders()
+        }) { [weak self] error in self?.handleError("fetching inbox messages", error) }
+    }
+    
+    private func subscribeToUserTransactions(forUser uid: String) {
+        let ownerQuery = dbRef.child("transactions").queryOrdered(byChild: "ownerId").queryEqual(toValue: uid)
+        transactionsListenerHandle_owner = ownerQuery.observe(.value) { [weak self] snapshot in
+            self?.processTransactionSnapshot(snapshot, forUser: uid, asRole: .owner)
+        }
+        let borrowerQuery = dbRef.child("transactions").queryOrdered(byChild: "borrowerId").queryEqual(toValue: uid)
+        transactionsListenerHandle_borrower = borrowerQuery.observe(.value) { [weak self] snapshot in
+            self?.processTransactionSnapshot(snapshot, forUser: uid, asRole: .borrower)
         }
     }
     
-    // Call this when the view disappears or user logs out
-    func unsubscribeFromInboxMessages() {
-        if let handle = messagesListenerHandle, let uid = currentUserId {
-            dbRef.child("inbox_messages").child(uid).removeObserver(withHandle: handle)
-            messagesListenerHandle = nil
-            currentUserId = nil
-            inboxMessages = [] // Clear messages on unsubscribe
-            print("InboxViewModel: Unsubscribed from inbox messages for user \(uid)")
-        }
-    }
-
-    deinit {
-        unsubscribeFromInboxMessages() // Ensure listener is removed on deinit
-    }
+    private enum UserRoleInTransaction { case owner, borrower }
     
-    func markMessageAsRead(messageId: String) {
-        guard let uid = currentUserId else { return }
-        dbRef.child("inbox_messages").child(uid).child(messageId).child("isRead").setValue(true) { error, _ in
-            if let error = error {
-                print("Error marking message \(messageId) as read: \(error.localizedDescription)")
-            } else {
-                if let index = self.inboxMessages.firstIndex(where: { $0.id == messageId }) {
-                    self.inboxMessages[index].isRead = true
+    private func processTransactionSnapshot(_ snapshot: DataSnapshot, forUser uid: String, asRole: UserRoleInTransaction) {
+        var newTransactions: [Transaction] = []
+        if snapshot.exists(), let children = snapshot.children.allObjects as? [DataSnapshot] {
+            children.forEach { childSnapshot in
+                if let transData = childSnapshot.value as? [String: Any],
+                   let transaction = parseTransaction(from: transData, id: childSnapshot.key) {
+                    // Filter for statuses relevant to generating reminders or actions
+                    let relevantStatuses = ["approved", "active_rental", "pending_lender_confirmation"]
+                    if relevantStatuses.contains(transaction.requestStatus) {
+                        newTransactions.append(transaction)
+                    }
                 }
             }
         }
+        DispatchQueue.main.async {
+            // Merge logic for relevantTransactions
+            var currentTransactionIds = Set(self.relevantTransactions.map { $0.id })
+            newTransactions.forEach { trans in
+                if !currentTransactionIds.contains(trans.id) {
+                    self.relevantTransactions.append(trans); currentTransactionIds.insert(trans.id)
+                } else if let index = self.relevantTransactions.firstIndex(where: { $0.id == trans.id }) {
+                    self.relevantTransactions[index] = trans
+                }
+            }
+            self.relevantTransactions.removeAll { transaction in
+                let relevantStatuses = ["approved", "active_rental", "pending_lender_confirmation"]
+                return !relevantStatuses.contains(transaction.requestStatus) || (transaction.ownerId != uid && transaction.borrowerId != uid)
+            }
+            self.generateAndMergeLocalReminders()
+        }
     }
     
-    func createAndSaveDummyMessage(
-        forUserUid uid: String, // Explicitly pass UID to ensure message goes to correct user
-        dateLine: String,
-        type: String,
-        showsRejectButton: Bool,
-        relatedTransactionId: String?,
-        lenderName: String?, // Name of the other party
-        itemName: String?,
-        completion: @escaping (Bool, String?) -> Void
-    ) {
-        let messageId = UUID().uuidString // Generate a unique ID for the new message
-        let timestamp = Date().timeIntervalSince1970
-
-        let newDummyMessage = InboxMessage(
-            id: messageId,
-            dateLine: dateLine,
-            type: type,
-            showsRejectButton: showsRejectButton,
-            relatedTransactionId: relatedTransactionId,
-            timestamp: timestamp,
-            isRead: false, // New messages are unread
-            lenderName: lenderName,
-            itemName: itemName
-        )
-
-        let userInboxRef = dbRef.child("inbox_messages").child(uid).child(messageId)
-
+    private func parseTransaction(from data: [String: Any], id: String) -> Transaction? {
+        guard let transactionDateStr = data["transactionDate"] as? String,
+              let startTimeStr = data["startTime"] as? String,
+              let endTimeStr = data["endTime"] as? String,
+              let relatedItemId = data["relatedItemId"] as? String,
+              let ownerId = data["ownerId"] as? String,
+              let borrowerId = data["borrowerId"] as? String,
+              let requestStatus = data["requestStatus"] as? String else {
+            print("InboxViewModel: Failed to parse transaction \(id)")
+            return nil
+        }
+        return Transaction(id: id, transactionDate: transactionDateStr, startTime: startTimeStr, endTime: endTimeStr, relatedItemId: relatedItemId, ownerId: ownerId, borrowerId: borrowerId, requestStatus: requestStatus)
+    }
+    
+    private func generateAndMergeLocalReminders() {
+        guard let currentUid = self.currentUserId else { return }
+        var localReminders: [InboxMessage] = []
+        let now = Date()
+        
+        for transaction in self.relevantTransactions {
+            guard let endTimeDate = isoDateFormatter.date(from: transaction.endTime) else { continue }
+            
+            // Borrower Return Prompt: When endTime is passed and status is still "approved" or "active_rental"
+            if transaction.borrowerId == currentUid &&
+                (transaction.requestStatus == "approved" || transaction.requestStatus == "active_rental") &&
+                now >= endTimeDate {
+                let reminderId = "borrower_return_prompt_\(transaction.id)"
+                if !self.inboxMessages.contains(where: { $0.id == reminderId && $0.type.hasPrefix("local_") }) {
+                    localReminders.append(InboxMessage(
+                        id: reminderId,
+                        dateLine: "Have you returned '\(transaction.relatedItemId)'?", // Placeholder for item name
+                        type: MSG_TYPE_LOCAL_BORROWER_RETURN_PROMPT,
+                        showsRejectButton: true, // For "Yes" / "Not Yet"
+                        relatedTransactionId: transaction.id,
+                        timestamp: endTimeDate.timeIntervalSince1970 + 1, // Place it relevant to end time
+                        isRead: false, lenderName: "System", itemName: transaction.relatedItemId // Placeholder
+                    ))
+                }
+            }
+        }
+        DispatchQueue.main.async {
+            let firebaseMessages = self.inboxMessages.filter { !$0.type.hasPrefix("local_") }
+            self.inboxMessages = (firebaseMessages + localReminders).sorted(by: { $0.timestamp > $1.timestamp })
+        }
+    }
+    
+    // MARK: - Message Action Handlers
+    func handleBorrowerReturnedAction(message: InboxMessage, didReturn: Bool) {
+        guard let transactionId = message.relatedTransactionId,
+              let currentUid = self.currentUserId,
+              let transaction = relevantTransactions.first(where: { $0.id == transactionId }),
+              transaction.borrowerId == currentUid else {
+            print("Error: Cannot process borrower return action. Invalid context."); return
+        }
+        
+        if didReturn {
+            // 1. Update Transaction status to "pending_lender_confirmation"
+            dbRef.child("transactions").child(transactionId).child("requestStatus").setValue("pending_lender_confirmation") { [weak self] error, _ in
+                guard let self = self else { return }
+                if let error = error { self.handleError("updating transaction for borrower return", error); return }
+                
+                // 2. Send InboxMessage to Owner
+                let ownerMessageId = UUID().uuidString
+                // Ideally, fetch borrower's display name for a better message
+                let borrowerName = self.authViewModel_UserDisplayName ?? self.authViewModel_UserEmail ?? "A user"
+                let ownerMessage = InboxMessage(
+                    id: ownerMessageId,
+                    dateLine: "\(borrowerName) states they have returned '\(transaction.relatedItemId)'. Please confirm.",
+                    type: self.MSG_TYPE_LENDER_CONFIRM_RECEIPT_PROMPT,
+                    showsRejectButton: true, // For Yes/No confirmation by lender
+                    relatedTransactionId: transactionId,
+                    timestamp: Date().timeIntervalSince1970,
+                    isRead: false,
+                    lenderName: borrowerName, // From lender's perspective, this is the borrower
+                    itemName: transaction.relatedItemId // Placeholder
+                )
+                self.sendMessage(ownerMessage, toUser: transaction.ownerId)
+                
+                // 3. Mark borrower's prompt as read/handled (or remove if purely local)
+                self.markMessageAsRead(messageId: message.id) // This will make local reminder "read"
+            }
+        } else {
+            // Borrower clicked "Not Yet".
+            // The local prompt will be removed on next merge or marked read.
+            // A more persistent "snooze" or different reminder could be implemented here.
+            print("Borrower indicated item not yet returned for transaction: \(transactionId)")
+            self.markMessageAsRead(messageId: message.id)
+        }
+    }
+    
+    func handleLenderConfirmReceiptAction(message: InboxMessage, didReceive: Bool) {
+        guard let transactionId = message.relatedTransactionId,
+              let currentUid = self.currentUserId,
+              let transaction = relevantTransactions.first(where: { $0.id == transactionId }),
+              transaction.ownerId == currentUid else {
+            print("Error: Cannot process lender receipt action. Invalid context."); return
+        }
+        
+        let transactionRef = dbRef.child("transactions").child(transactionId)
+        let itemRef = dbRef.child("items").child(transaction.relatedItemId)
+        
+        if didReceive {
+            // 1. Update Transaction status to "completed"
+            transactionRef.child("requestStatus").setValue("completed") { [weak self] error, _ in
+                guard let self = self else { return }
+                if let error = error { self.handleError("completing transaction", error); return }
+                
+                // 2. Update Item availability to true
+                itemRef.child("isAvailable").setValue(true) { error, _ in
+                    if let error = error { self.handleError("updating item availability", error); /* Continue anyway */ }
+                }
+                
+                // 3. Send confirmation to Borrower
+                let borrowerMessageId = UUID().uuidString
+                let borrowerMessage = InboxMessage(
+                    id: borrowerMessageId,
+                    dateLine: "Lender confirmed return of '\(transaction.relatedItemId)'. Thank you!",
+                    type: self.MSG_TYPE_ITEM_RETURN_COMPLETED,
+                    showsRejectButton: false,
+                    relatedTransactionId: transactionId,
+                    timestamp: Date().timeIntervalSince1970,
+                    isRead: false,
+                    lenderName: "System", // Or lender's name
+                    itemName: transaction.relatedItemId // Placeholder
+                )
+                self.sendMessage(borrowerMessage, toUser: transaction.borrowerId)
+                self.markMessageAsRead(messageId: message.id) // Mark lender's prompt as read
+            }
+        } else { // Lender says item not received
+            // 1. Update Transaction status to "disputed_return"
+            transactionRef.child("requestStatus").setValue("disputed_return") { [weak self] error, _ in
+                guard let self = self else { return }
+                if let error = error { self.handleError("setting transaction to disputed", error); return }
+                
+                // 2. Notify Borrower
+                let borrowerMessageId = UUID().uuidString
+                let borrowerMessage = InboxMessage(
+                    id: borrowerMessageId,
+                    dateLine: "Lender reports '\(transaction.relatedItemId)' not yet received. Please ensure return or contact lender.",
+                    type: self.MSG_TYPE_LENDER_DISPUTED_RETURN,
+                    showsRejectButton: false, // Or true if borrower can take action from this message
+                    relatedTransactionId: transactionId,
+                    timestamp: Date().timeIntervalSince1970,
+                    isRead: false,
+                    lenderName: "System", // Or lender's name
+                    itemName: transaction.relatedItemId // Placeholder
+                )
+                self.sendMessage(borrowerMessage, toUser: transaction.borrowerId)
+                
+                // 3. Optionally, notify Lender that dispute is logged (or just update their UI)
+                let lenderConfirmationId = UUID().uuidString
+                let lenderConfirmationMessage = InboxMessage(
+                    id: lenderConfirmationId,
+                    dateLine: "You reported item '\(transaction.relatedItemId)' not received. Borrower notified.",
+                    type: self.MSG_TYPE_RETURN_DISPUTE_LOGGED_FOR_LENDER,
+                    showsRejectButton: false,
+                    relatedTransactionId: transactionId,
+                    timestamp: Date().timeIntervalSince1970 + 1, // Slightly later
+                    isRead: false,
+                    lenderName: "System",
+                    itemName: transaction.relatedItemId
+                )
+                self.sendMessage(lenderConfirmationMessage, toUser: transaction.ownerId)
+                self.markMessageAsRead(messageId: message.id) // Mark original prompt as read
+            }
+        }
+    }
+    
+    // MARK: - Utility & Existing Functions
+    private func sendMessage(_ message: InboxMessage, toUser userId: String) {
+        let messageRef = dbRef.child("inbox_messages").child(userId).child(message.id)
         do {
-            // Assuming InboxMessage is Encodable
-            let messageData = try JSONEncoder().encode(newDummyMessage)
-            guard let messageDict = try JSONSerialization.jsonObject(with: messageData, options: []) as? [String: Any] else {
-                completion(false, "Failed to create dictionary from message data.")
-                return
-            }
-            
-            userInboxRef.setValue(messageDict) { error, _ in
-                if let error = error {
-                    print("Error saving dummy message: \(error.localizedDescription)")
-                    completion(false, error.localizedDescription)
-                } else {
-                    print("Dummy message saved successfully to user \(uid)'s inbox.")
-                    completion(true, nil)
-                }
-            }
-        } catch {
-            print("Error encoding dummy message: \(error.localizedDescription)")
-            completion(false, error.localizedDescription)
+            let messageData = try JSONEncoder().encode(message)
+            guard let messageDict = try JSONSerialization.jsonObject(with: messageData, options: []) as? [String: Any] else { return }
+            messageRef.setValue(messageDict)
+        } catch { print("Error encoding message for sending: \(error)") }
+    }
+    
+    private func handleError(_ context: String, _ error: Error) {
+        DispatchQueue.main.async {
+            self.isLoading = false
+            self.errorMessage = "Error \(context): \(error.localizedDescription)"
+            print(self.errorMessage!)
         }
     }
     
+    func unsubscribeAll() {
+        if let handle = messagesListenerHandle, let uid = currentUserId { dbRef.child("inbox_messages").child(uid).removeObserver(withHandle: handle); messagesListenerHandle = nil }
+        if let handle = transactionsListenerHandle_owner, let uid = currentUserId { dbRef.child("transactions").queryOrdered(byChild: "ownerId").queryEqual(toValue: uid).removeObserver(withHandle: handle); transactionsListenerHandle_owner = nil }
+        if let handle = transactionsListenerHandle_borrower, let uid = currentUserId { dbRef.child("transactions").queryOrdered(byChild: "borrowerId").queryEqual(toValue: uid).removeObserver(withHandle: handle); transactionsListenerHandle_borrower = nil }
+        currentUserId = nil; inboxMessages = []; relevantTransactions = []
+        print("InboxViewModel: Unsubscribed from all listeners and cleared data.")
+    }
+    deinit { unsubscribeAll() }
+        func markMessageAsRead(messageId: String) {
+            guard let uid = currentUserId else { return }
+            dbRef.child("inbox_messages").child(uid).child(messageId).child("isRead").setValue(true) { error, _ in
+                if let error = error {
+                    print("Error marking message \(messageId) as read: \(error.localizedDescription)")
+                } else {
+                    if let index = self.inboxMessages.firstIndex(where: { $0.id == messageId }) {
+                        self.inboxMessages[index].isRead = true
+                    }
+                }
+            }
+        }
+        func createAndSaveDummyMessage(
+            forUserUid uid: String, // Explicitly pass UID to ensure message goes to correct user
+            dateLine: String,
+            type: String,
+            showsRejectButton: Bool,
+            relatedTransactionId: String?,
+            lenderName: String?, // Name of the other party
+            itemName: String?,
+            completion: @escaping (Bool, String?) -> Void
+        ) {
+            let messageId = UUID().uuidString // Generate a unique ID for the new message
+            let timestamp = Date().timeIntervalSince1970
+    
+            let newDummyMessage = InboxMessage(
+                id: messageId,
+                dateLine: dateLine,
+                type: type,
+                showsRejectButton: showsRejectButton,
+                relatedTransactionId: relatedTransactionId,
+                timestamp: timestamp,
+                isRead: false, // New messages are unread
+                lenderName: lenderName,
+                itemName: itemName
+            )
+    
+            let userInboxRef = dbRef.child("inbox_messages").child(uid).child(messageId)
+    
+            do {
+                // Assuming InboxMessage is Encodable
+                let messageData = try JSONEncoder().encode(newDummyMessage)
+                guard let messageDict = try JSONSerialization.jsonObject(with: messageData, options: []) as? [String: Any] else {
+                    completion(false, "Failed to create dictionary from message data.")
+                    return
+                }
+    
+                userInboxRef.setValue(messageDict) { error, _ in
+                    if let error = error {
+                        print("Error saving dummy message: \(error.localizedDescription)")
+                        completion(false, error.localizedDescription)
+                    } else {
+                        print("Dummy message saved successfully to user \(uid)'s inbox.")
+                        completion(true, nil)
+                    }
+                }
+            } catch {
+                print("Error encoding dummy message: \(error.localizedDescription)")
+                completion(false, error.localizedDescription)
+            }
+        }
+    // Accept/Reject request methods from user's uploaded InboxViewModel
     func acceptRequest(message: InboxMessage) {
         guard let transactionId = message.relatedTransactionId, let currentUid = self.currentUserId else {
             print("Error: Missing transactionId or currentUserID for acceptRequest")
             return
         }
-
+        
         let transactionRef = dbRef.child("transactions").child(transactionId)
-
+        
         transactionRef.observeSingleEvent(of: .value) { [weak self] snapshot in
             guard let self = self, let transactionData = snapshot.value as? [String: Any],
                   let itemId = transactionData["relatedItemId"] as? String,
@@ -180,13 +405,13 @@ class InboxViewModel: ObservableObject {
                     print("Error updating transaction status: \(error.localizedDescription)")
                     return
                 }
-
+                
                 self.dbRef.child("items").child(itemId).child("isAvailable").setValue(false) { error, _ in
                     if let error = error {
                         print("Error updating item availability: \(error.localizedDescription)")
                         return
                     }
-
+                    
                     let approvalMessageId = UUID().uuidString
                     let approvalMessage = InboxMessage(
                         id: approvalMessageId,
@@ -200,104 +425,19 @@ class InboxViewModel: ObservableObject {
                         itemName: message.itemName
                     )
                     self.sendMessage(approvalMessage, toUser: borrowerId)
-
+                    
                     self.markMessageAsRead(messageId: message.id)
                     print("Request approved successfully for transaction: \(transactionId)")
                 }
             }
         }
     }
-
+    
     func rejectRequest(message: InboxMessage) {
         guard let transactionId = message.relatedTransactionId, let currentUid = self.currentUserId else {
             print("Error: Missing transactionId or currentUserID for rejectRequest")
             return
         }
-
-        let transactionRef = dbRef.child("transactions").child(transactionId)
-
-        transactionRef.observeSingleEvent(of: .value) { [weak self] snapshot in
-            guard let self = self, let transactionData = snapshot.value as? [String: Any],
-                  let borrowerId = transactionData["borrowerId"] as? String,
-                  let ownerId = transactionData["ownerId"] as? String,
-                  ownerId == currentUid else {
-                print("Error: Could not fetch transaction for rejection or not owner.")
-                return
-            }
-
-            transactionRef.removeValue { error, _ in
-                if let error = error {
-                    print("Error deleting transaction: \(error.localizedDescription)")
-                    return
-                }
-                let declinedMessageId = UUID().uuidString
-                let declinedMessage = InboxMessage(
-                    id: declinedMessageId,
-                    dateLine: "Your request for '\(message.itemName ?? "item")' has been declined.",
-                    type: "request_declined",
-                    showsRejectButton: false,
-                    relatedTransactionId: transactionId,
-                    timestamp: Date().timeIntervalSince1970,
-                    isRead: false,
-                    lenderName: nil,
-                    itemName: message.itemName
-                )
-                self.sendMessage(declinedMessage, toUser: borrowerId)
-
-                self.markMessageAsRead(messageId: message.id)
-                print("Request declined and transaction deleted for: \(transactionId)")
-            }
-        }
+        // func acceptReturnReminder(message: InboxMessage) { /* ... (user's existing logic - this will be replaced by new flow) ... */ }
     }
-
-    func acceptReturnReminder(message: InboxMessage) {
-        guard let transactionId = message.relatedTransactionId,
-              let itemId = message.itemName,
-              let currentUid = self.currentUserId else {
-            print("Error: Missing data for acceptReturnReminder")
-            return
-        }
-        dbRef.child("transactions").child(transactionId).observeSingleEvent(of: .value) { [weak self] snapshot in
-            guard let self = self, let transactionData = snapshot.value as? [String: Any],
-                  let actualItemId = transactionData["relatedItemId"] as? String,
-                  let ownerId = transactionData["ownerId"] as? String,
-                  ownerId == currentUid else {
-                print("Error: Could not fetch transaction for return or not owner.")
-                return
-            }
-            self.dbRef.child("items").child(actualItemId).child("isAvailable").setValue(true) { error, _ in
-                if let error = error {
-                    print("Error updating item availability on return: \(error.localizedDescription)")
-                    return
-                }
-
-                self.dbRef.child("transactions").child(transactionId).child("requestStatus").setValue("completed")
-
-                self.markMessageAsRead(messageId: message.id)
-                print("Item return accepted for item: \(actualItemId), transaction: \(transactionId)")
-            }
-        }
-    }
-
-
-    private func sendMessage(_ message: InboxMessage, toUser userId: String) {
-        let messageRef = dbRef.child("inbox_messages").child(userId).child(message.id)
-        do {
-            let messageData = try JSONEncoder().encode(message)
-            guard let messageDict = try JSONSerialization.jsonObject(with: messageData, options: []) as? [String: Any] else {
-                print("Error: Could not serialize message for sending.")
-                return
-            }
-            messageRef.setValue(messageDict) { error, _ in
-                if let error = error {
-                    print("Error sending message \(message.id) to user \(userId): \(error.localizedDescription)")
-                } else {
-                    print("Message \(message.id) sent successfully to user \(userId).")
-                }
-            }
-        } catch {
-            print("Error encoding message for sending: \(error.localizedDescription)")
-        }
-    }
-
 }
