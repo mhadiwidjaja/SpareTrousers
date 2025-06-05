@@ -36,7 +36,22 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		3FB3F9892DF1634700DFDEC9 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		3FB3F9652DF162CC00DFDEC9 /* SpareTrousersMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpareTrousersMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3FB3F9A72DF1654B00DFDEC9 /* SpareTrousersWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SpareTrousersWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3FCF85492DDEC38200695E6B /* SpareTrousers.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpareTrousers.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3FCF85592DDEC38400695E6B /* SpareTrousersTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SpareTrousersTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3FCF85632DDEC38400695E6B /* SpareTrousersUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SpareTrousersUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -50,9 +65,62 @@
 			);
 			target = 3FCF85482DDEC38200695E6B /* SpareTrousers */;
 		};
+		3FB3F98D2DF1648200DFDEC9 /* Exceptions for "Shared" folder in "SpareTrousersMac" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Model/CategoryItem.swift,
+				Model/DisplayItem.swift,
+				Model/InboxMessage.swift,
+				Model/Tab.swift,
+				Model/Transaction.swift,
+				Service/SeedingService.swift,
+				Utils/AppColors.swift,
+				ViewModel/AuthViewModel.swift,
+				ViewModel/HomeViewModel.swift,
+				ViewModel/InboxViewModel.swift,
+				ViewModel/MyRentalsViewModel.swift,
+			);
+			target = 3FB3F9642DF162CC00DFDEC9 /* SpareTrousersMac */;
+		};
+		3FB3F9B62DF165E000DFDEC9 /* Exceptions for "Shared" folder in "SpareTrousersWatch Watch App" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Model/CategoryItem.swift,
+				Model/DisplayItem.swift,
+				Model/InboxMessage.swift,
+				Model/Tab.swift,
+				Model/Transaction.swift,
+				Service/SeedingService.swift,
+				Utils/AppColors.swift,
+				ViewModel/AuthViewModel.swift,
+				ViewModel/HomeViewModel.swift,
+				ViewModel/InboxViewModel.swift,
+				ViewModel/MyRentalsViewModel.swift,
+			);
+			target = 3FB3F9A62DF1654B00DFDEC9 /* SpareTrousersWatch Watch App */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		3FB3F9662DF162CC00DFDEC9 /* SpareTrousersMac */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = SpareTrousersMac;
+			sourceTree = "<group>";
+		};
+		3FB3F98A2DF1644000DFDEC9 /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3FB3F98D2DF1648200DFDEC9 /* Exceptions for "Shared" folder in "SpareTrousersMac" target */,
+				3FB3F9B62DF165E000DFDEC9 /* Exceptions for "Shared" folder in "SpareTrousersWatch Watch App" target */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		3FB3F9A82DF1654B00DFDEC9 /* SpareTrousersWatch Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "SpareTrousersWatch Watch App";
+			sourceTree = "<group>";
+		};
 		3FCF854B2DDEC38200695E6B /* SpareTrousers */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -74,6 +142,20 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		3FB3F9622DF162CC00DFDEC9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3FB3F9A42DF1654B00DFDEC9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3FCF85462DDEC38200695E6B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -111,9 +193,12 @@
 		3FCF85402DDEC38200695E6B = {
 			isa = PBXGroup;
 			children = (
+				3FB3F98A2DF1644000DFDEC9 /* Shared */,
 				3FCF854B2DDEC38200695E6B /* SpareTrousers */,
 				3FCF855C2DDEC38400695E6B /* SpareTrousersTests */,
 				3FCF85662DDEC38400695E6B /* SpareTrousersUITests */,
+				3FB3F9662DF162CC00DFDEC9 /* SpareTrousersMac */,
+				3FB3F9A82DF1654B00DFDEC9 /* SpareTrousersWatch Watch App */,
 				3FCF854A2DDEC38200695E6B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -124,6 +209,8 @@
 				3FCF85492DDEC38200695E6B /* SpareTrousers.app */,
 				3FCF85592DDEC38400695E6B /* SpareTrousersTests.xctest */,
 				3FCF85632DDEC38400695E6B /* SpareTrousersUITests.xctest */,
+				3FB3F9652DF162CC00DFDEC9 /* SpareTrousersMac.app */,
+				3FB3F9A72DF1654B00DFDEC9 /* SpareTrousersWatch Watch App.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -131,6 +218,50 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		3FB3F9642DF162CC00DFDEC9 /* SpareTrousersMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3FB3F9732DF162CD00DFDEC9 /* Build configuration list for PBXNativeTarget "SpareTrousersMac" */;
+			buildPhases = (
+				3FB3F9612DF162CC00DFDEC9 /* Sources */,
+				3FB3F9622DF162CC00DFDEC9 /* Frameworks */,
+				3FB3F9632DF162CC00DFDEC9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				3FB3F9662DF162CC00DFDEC9 /* SpareTrousersMac */,
+			);
+			name = SpareTrousersMac;
+			packageProductDependencies = (
+			);
+			productName = SpareTrousersMac;
+			productReference = 3FB3F9652DF162CC00DFDEC9 /* SpareTrousersMac.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3FB3F9A62DF1654B00DFDEC9 /* SpareTrousersWatch Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3FB3F9B22DF1654C00DFDEC9 /* Build configuration list for PBXNativeTarget "SpareTrousersWatch Watch App" */;
+			buildPhases = (
+				3FB3F9A32DF1654B00DFDEC9 /* Sources */,
+				3FB3F9A42DF1654B00DFDEC9 /* Frameworks */,
+				3FB3F9A52DF1654B00DFDEC9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				3FB3F9A82DF1654B00DFDEC9 /* SpareTrousersWatch Watch App */,
+			);
+			name = "SpareTrousersWatch Watch App";
+			packageProductDependencies = (
+			);
+			productName = "SpareTrousersWatch Watch App";
+			productReference = 3FB3F9A72DF1654B00DFDEC9 /* SpareTrousersWatch Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
 		3FCF85482DDEC38200695E6B /* SpareTrousers */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3FCF856D2DDEC38400695E6B /* Build configuration list for PBXNativeTarget "SpareTrousers" */;
@@ -138,12 +269,14 @@
 				3FCF85452DDEC38200695E6B /* Sources */,
 				3FCF85462DDEC38200695E6B /* Frameworks */,
 				3FCF85472DDEC38200695E6B /* Resources */,
+				3FB3F9892DF1634700DFDEC9 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				3FB3F98A2DF1644000DFDEC9 /* Shared */,
 				3FCF854B2DDEC38200695E6B /* SpareTrousers */,
 			);
 			name = SpareTrousers;
@@ -219,6 +352,12 @@
 				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1620;
 				TargetAttributes = {
+					3FB3F9642DF162CC00DFDEC9 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					3FB3F9A62DF1654B00DFDEC9 = {
+						CreatedOnToolsVersion = 16.2;
+					};
 					3FCF85482DDEC38200695E6B = {
 						CreatedOnToolsVersion = 16.2;
 					};
@@ -252,11 +391,27 @@
 				3FCF85482DDEC38200695E6B /* SpareTrousers */,
 				3FCF85582DDEC38400695E6B /* SpareTrousersTests */,
 				3FCF85622DDEC38400695E6B /* SpareTrousersUITests */,
+				3FB3F9642DF162CC00DFDEC9 /* SpareTrousersMac */,
+				3FB3F9A62DF1654B00DFDEC9 /* SpareTrousersWatch Watch App */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		3FB3F9632DF162CC00DFDEC9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3FB3F9A52DF1654B00DFDEC9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3FCF85472DDEC38200695E6B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -281,6 +436,20 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		3FB3F9612DF162CC00DFDEC9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3FB3F9A32DF1654B00DFDEC9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3FCF85452DDEC38200695E6B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -318,6 +487,118 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		3FB3F9712DF162CD00DFDEC9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SpareTrousersMac/SpareTrousersMac.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"SpareTrousersMac/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "El-Trio.SpareTrousersMac";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		3FB3F9722DF162CD00DFDEC9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SpareTrousersMac/SpareTrousersMac.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"SpareTrousersMac/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "El-Trio.SpareTrousersMac";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		3FB3F9B32DF1654C00DFDEC9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"SpareTrousersWatch Watch App/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = SpareTrousersWatch;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = .watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Debug;
+		};
+		3FB3F9B42DF1654C00DFDEC9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"SpareTrousersWatch Watch App/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = SpareTrousersWatch;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = .watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Release;
+		};
 		3FCF856B2DDEC38400695E6B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -566,6 +847,24 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		3FB3F9732DF162CD00DFDEC9 /* Build configuration list for PBXNativeTarget "SpareTrousersMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3FB3F9712DF162CD00DFDEC9 /* Debug */,
+				3FB3F9722DF162CD00DFDEC9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3FB3F9B22DF1654C00DFDEC9 /* Build configuration list for PBXNativeTarget "SpareTrousersWatch Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3FB3F9B32DF1654C00DFDEC9 /* Debug */,
+				3FB3F9B42DF1654C00DFDEC9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		3FCF85442DDEC38200695E6B /* Build configuration list for PBXProject "SpareTrousers" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

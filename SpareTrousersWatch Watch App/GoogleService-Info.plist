@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyDpBBxX6i3LudOkIiTLJsxosj_P8i5xyVw</string>
+	<key>GCM_SENDER_ID</key>
+	<string>235286921895</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>El-Trio.SpareTrousers.watchkitapp</string>
+	<key>PROJECT_ID</key>
+	<string>sparetrousers-alp</string>
+	<key>STORAGE_BUCKET</key>
+	<string>sparetrousers-alp.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:235286921895:ios:e96d2d9d55d0bd691b1182</string>
+	<key>DATABASE_URL</key>
+	<string>https://sparetrousers-alp-default-rtdb.asia-southeast1.firebasedatabase.app</string>
+</dict>
+</plist>
