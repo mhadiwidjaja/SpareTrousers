@@ -19,9 +19,12 @@ class AuthViewModel: ObservableObject {
     private var ref: DatabaseReference!
     private var cancellables = Set<AnyCancellable>()
 
+    // Initializes the AuthViewModel
     init() {
         ref = Database.database().reference()
         checkAuthState()
+
+        // Publisher pipeline to fetch user address and display name when UID is available
         $userSession
             .compactMap { $0?.uid }
             .flatMap { [weak self] uid -> AnyPublisher<(address: String?, displayName: String?), Never> in
@@ -45,6 +48,7 @@ class AuthViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
+        // Publisher to clear userAddress when userSession becomes nil
         $userSession
             .filter { $0 == nil }
             .sink { [weak self] _ in
@@ -53,6 +57,7 @@ class AuthViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
+    // Checks the current Firebase authentication state.
     func checkAuthState() {
         if let user = Auth.auth().currentUser {
             self.userSession = UserSession(uid: user.uid, email: user.email, displayName: user.displayName)
@@ -62,6 +67,7 @@ class AuthViewModel: ObservableObject {
         }
     }
 
+    // Handles user login with email and password.
     func login(email: String, password: String) {
         isLoading = true
         errorMessage = nil
@@ -79,6 +85,7 @@ class AuthViewModel: ObservableObject {
         }
     }
 
+    // Handles user registration with email, password, display name, and address.
     func register(email: String, password: String, displayName: String, address: String) {
         isLoading = true
         errorMessage = nil
@@ -114,6 +121,7 @@ class AuthViewModel: ObservableObject {
         }
     }
 
+    // Saves user details to Firebase Realtime Database.
     private func saveUserDetails(uid: String, email: String, displayName: String, address: String) {
         let userData: [String: Any] = [
             "email": email,
@@ -135,6 +143,7 @@ class AuthViewModel: ObservableObject {
         }
     }
     
+    // Fetches user display name from Firebase Realtime Database.
     func fetchUserDisplayName(uid: String) -> AnyPublisher<String?, Never> {
         Future<String?, Never> { [weak self] promise in
             guard let self = self else { promise(.success(nil)); return }
@@ -148,6 +157,7 @@ class AuthViewModel: ObservableObject {
         .eraseToAnyPublisher()
     }
 
+    // Fetches user address from Firebase Realtime Database.
     func fetchUserAddress(uid: String) -> AnyPublisher<String?, Never> {
         Future<String?, Never> { [weak self] promise in
             guard let self = self else { promise(.success(nil)); return }
@@ -161,6 +171,7 @@ class AuthViewModel: ObservableObject {
         .eraseToAnyPublisher()
     }
 
+    // Logs out the current user.
     func logout() {
         do {
             try Auth.auth().signOut()
@@ -176,6 +187,7 @@ class AuthViewModel: ObservableObject {
         }
     }
     
+    // Updates the user's address in Firebase Realtime Database.
     func updateUserAddress(newAddress: String) {
         guard let uid = self.userSession?.uid else {
             DispatchQueue.main.async {
@@ -202,6 +214,7 @@ class AuthViewModel: ObservableObject {
         }
     }
     
+    // Updates the user's display name in Firebase Authentication and Realtime Database.
     func updateUserDisplayName(newName: String, completion: @escaping (Bool, String?) -> Void) {
         guard let user = Auth.auth().currentUser else {
             completion(false, "No authenticated user found.")

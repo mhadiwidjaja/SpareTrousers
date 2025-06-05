@@ -27,11 +27,13 @@ class MyRentalViewModel: ObservableObject {
         Auth.auth().currentUser?.uid
     }
 
+    // Initializes the view model with HomeViewModel and AuthViewModel dependencies
     init(homeViewModel: HomeViewModel, authViewModel: AuthViewModel) {
         self.homeViewModel = homeViewModel
         self.authViewModel = authViewModel
         self.dbRef = Database.database().reference()
         
+        // Subscribe to changes in all fetched items from HomeViewModel.
         homeViewModel.$allFetchedItems
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
@@ -45,6 +47,7 @@ class MyRentalViewModel: ObservableObject {
         fetchTransactions()
     }
     
+    // Cleans up the Firebase transaction listener when the ViewModel is deinitialized.
     deinit {
         if let handle = transactionsListenerHandle {
             dbRef.child("transactions").removeObserver(withHandle: handle)
@@ -57,6 +60,7 @@ class MyRentalViewModel: ObservableObject {
     
     private var lastFetchedTransactions: [Transaction] = []
     
+    // Fetches all transactions from Firebase and sets up a real-time listener.
     private func fetchTransactions() {
         guard currentUserID != nil else {
             self.myLendingItems = []
@@ -83,6 +87,7 @@ class MyRentalViewModel: ObservableObject {
                 if let value = snapshot.value as? [String: Any] {
                     for (transactionId, transData) in value {
                         if let transDict = transData as? [String: Any] {
+                            // Safely parse transaction fields.
                             guard let transactionDate = transDict["transactionDate"] as? String,
                                   let startTime = transDict["startTime"] as? String,
                                   let endTime = transDict["endTime"] as? String,
@@ -123,6 +128,7 @@ withCancel: { [weak self] error in
         updateMyLendingItems()
     }
     
+    // Processes a list of transactions to identify items currently borrowed by the user
     private func processFetchedTransactions(_ transactions: [Transaction]) {
         guard let uid = currentUserID else {
             self.myBorrowedEntries = []
@@ -156,10 +162,12 @@ withCancel: { [weak self] error in
         initialEntries
             .sort { $0.transaction.startTime < $1.transaction.startTime }
                 
+        // Update the published property for the UI
         DispatchQueue.main.async {
             self.myBorrowedEntries = initialEntries
         }
 
+        // Fetch display names for each lender asynchronously
         for i in 0..<initialEntries.count {
             let entry = initialEntries[i]
             guard let ownerUid = entry.item.ownerUid, !ownerUid.isEmpty else {
@@ -192,7 +200,7 @@ receiveValue: { [weak self] displayName in
         )
     }
         
-    
+    // Updates `myLendingItems` by filtering `homeViewModel.allFetchedItems`
     func updateMyLendingItems() {
         guard let uid = currentUserID else {
             self.myLendingItems = []

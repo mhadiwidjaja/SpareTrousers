@@ -10,6 +10,8 @@ import Firebase
 @main
 struct SpareTrousersApp: App {
     @StateObject var viewModel = AuthViewModel()
+
+    // Initializes the application
     init() {
         for family in UIFont.familyNames {
             print("Family: \(family)")
@@ -17,10 +19,12 @@ struct SpareTrousersApp: App {
                 print("  Font: \(name)")
             }
         }
+        // Configures Firebase services when the app starts
         FirebaseApp.configure()
         print("Firebase configured!")
 
         let defaults = UserDefaults.standard
+        // Checks if Firebase dummy items have been seeded before to prevent duplicate seeding.
         if !defaults
             .bool(forKey: "hasSeededFirebaseDummyItems_IntCategories_v1") {
             print(

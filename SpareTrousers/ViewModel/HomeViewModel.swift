@@ -52,6 +52,7 @@ class HomeViewModel: ObservableObject {
         print("Initialized \(categories.count) local categories.")
     }
 
+    // Fetches items from Firebase and updates the `allFetchedItems` property
     func fetchItemsFromFirebase() {
         guard !categories.isEmpty else {
             print("Error: Local categories not initialized before fetching items.")
@@ -127,6 +128,7 @@ class HomeViewModel: ObservableObject {
         })
     }
 
+    // Applies filters to the fetched items based on the current search text and selected category
     func applyFilters() {
         var filteredItems = self.allFetchedItems
         
@@ -159,6 +161,7 @@ class HomeViewModel: ObservableObject {
         }
     }
 
+    // Performs the search based on the current search text and selected category
     func performSearch() {
         if searchText.isEmpty && selectedCategoryId == nil {
             clearSearch(clearCategoryAlso: false); return
@@ -166,12 +169,14 @@ class HomeViewModel: ObservableObject {
         isSearchActive = !searchText.isEmpty; applyFilters()
     }
     
+    // Clears the search text and resets the search state
     func clearSearch(clearCategoryAlso: Bool = false) {
         searchText = ""; isSearchActive = false
         if clearCategoryAlso { clearCategoryFilter(applyFilterAfter: false) }
         applyFilters(); print("Search cleared.")
     }
 
+    // Selects a category and applies the filter
     func selectCategory(_ category: CategoryItem) {
         guard categories.contains(where: { $0.id == category.id }) else {
             print("Error: Attempted to select a category not in the local list."); return
@@ -180,17 +185,20 @@ class HomeViewModel: ObservableObject {
         else { selectedCategoryId = category.id; selectedCategoryName = category.name; applyFilters() }
     }
 
+    // Clears the selected category filter and applies the filters
     func clearCategoryFilter(applyFilterAfter: Bool = true) {
         selectedCategoryId = nil; selectedCategoryName = nil
         if applyFilterAfter { applyFilters() }
         print("Category filter cleared.")
     }
     
+    // Clears all filters (search and category) and applies the filters
     func clearAllFilters() {
         searchText = ""; isSearchActive = false; selectedCategoryId = nil; selectedCategoryName = nil
         applyFilters(); print("All filters cleared.")
     }
 
+    // Returns the name of the active filter based on the current search text and selected category
     func getActiveFilterName() -> String? {
         if let categoryName = selectedCategoryName {
             return isSearchActive && !searchText.isEmpty ? "\(categoryName) & \"\(searchText)\"" : categoryName
@@ -201,6 +209,7 @@ class HomeViewModel: ObservableObject {
     func isAnyFilterActive() -> Bool { selectedCategoryId != nil || (isSearchActive && !searchText.isEmpty) }
     func calculateOverlapHeight() -> CGFloat { 40 }
 
+    // Adds a new item to Firebase with the provided details
     func addItemToFirebase(name: String, description: String, localCategory: CategoryItem, price: String, ownerUid: String, imageName: String = "DummyProduct") {
         guard categories.contains(where: { $0.id == localCategory.id }) else {
             self.errorMessage = "Invalid category provided for new item."; print(self.errorMessage!); return
@@ -221,7 +230,7 @@ class HomeViewModel: ObservableObject {
         }
     }
     
-    
+    // Updates an existing item in Firebase with the provided item ID and data
     func updateItemInFirebase(itemId: String, itemData: [String: Any], completion: @escaping (Bool, String?) -> Void) {
         guard !itemId.isEmpty else {
             completion(false, "Item ID is missing.")

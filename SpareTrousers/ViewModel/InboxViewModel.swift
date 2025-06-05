@@ -60,6 +60,8 @@ class InboxViewModel: ObservableObject {
         subscribeToUserTransactions(forUser: uid)
     }
     
+    // Subscribes to real-time updates for messages in the current user's inbox path in Firebase.
+    // Updates `inboxMessages` when new messages arrive or existing ones change.
     private func subscribeToInboxMessages(forUser uid: String) {
         isLoading = true; errorMessage = nil
         let userMessagesRef = dbRef.child("inbox_messages").child(uid)
@@ -80,6 +82,7 @@ class InboxViewModel: ObservableObject {
         }) { [weak self] error in self?.handleError("fetching inbox messages", error) }
     }
     
+    // Subscribes to transactions where the user is either the owner or the borrower.
     private func subscribeToUserTransactions(forUser uid: String) {
         let ownerQuery = dbRef.child("transactions").queryOrdered(byChild: "ownerId").queryEqual(toValue: uid)
         transactionsListenerHandle_owner = ownerQuery.observe(.value) { [weak self] snapshot in
@@ -93,6 +96,7 @@ class InboxViewModel: ObservableObject {
     
     private enum UserRoleInTransaction { case owner, borrower }
     
+    // Processes transaction snapshots for both owner and borrower roles
     private func processTransactionSnapshot(_ snapshot: DataSnapshot, forUser uid: String, asRole: UserRoleInTransaction) {
         var newTransactions: [Transaction] = []
         if snapshot.exists(), let children = snapshot.children.allObjects as? [DataSnapshot] {
@@ -139,6 +143,7 @@ class InboxViewModel: ObservableObject {
         return Transaction(id: id, transactionDate: transactionDateStr, startTime: startTimeStr, endTime: endTimeStr, relatedItemId: relatedItemId, ownerId: ownerId, borrowerId: borrowerId, requestStatus: requestStatus)
     }
     
+    // Generates local, non-persistent reminder messages based on `relevantTransactions`.
     private func generateAndMergeLocalReminders() {
         guard let currentUid = self.currentUserId else { return }
         var localReminders: [InboxMessage] = []
@@ -171,6 +176,7 @@ class InboxViewModel: ObservableObject {
     }
     
     // MARK: - Message Action Handlers
+    // Handles the Borrower's return action, updating transaction status and notifying the Lender.
     func handleBorrowerReturnedAction(message: InboxMessage, didReturn: Bool) {
         guard let transactionId = message.relatedTransactionId,
               let currentUid = self.currentUserId,
@@ -209,6 +215,7 @@ class InboxViewModel: ObservableObject {
         }
     }
     
+    // Handles the Lender's confirmation of receipt action, either confirming return or disputing it.
     func handleLenderConfirmReceiptAction(message: InboxMessage, didReceive: Bool) {
         guard let transactionId = message.relatedTransactionId,
               let currentUid = self.currentUserId,
@@ -305,6 +312,7 @@ class InboxViewModel: ObservableObject {
         }
     }
     
+    // Cleans up all Firebase listeners and clears local data.
     func unsubscribeAll() {
         if let handle = messagesListenerHandle, let uid = currentUserId { dbRef.child("inbox_messages").child(uid).removeObserver(withHandle: handle); messagesListenerHandle = nil }
         if let handle = transactionsListenerHandle_owner, let uid = currentUserId { dbRef.child("transactions").queryOrdered(byChild: "ownerId").queryEqual(toValue: uid).removeObserver(withHandle: handle); transactionsListenerHandle_owner = nil }
@@ -325,13 +333,14 @@ class InboxViewModel: ObservableObject {
                 }
             }
         }
+        
         func createAndSaveDummyMessage(
-            forUserUid uid: String, // Explicitly pass UID to ensure message goes to correct user
+            forUserUid uid: String,
             dateLine: String,
             type: String,
             showsRejectButton: Bool,
             relatedTransactionId: String?,
-            lenderName: String?, // Name of the other party
+            lenderName: String?,
             itemName: String?,
             completion: @escaping (Bool, String?) -> Void
         ) {
