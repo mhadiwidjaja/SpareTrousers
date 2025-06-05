@@ -16,6 +16,7 @@ struct BorrowedItemDetailView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var lenderDisplayName: String = "Loading..."
     @State private var cancellables = Set<AnyCancellable>()
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
 
     var productImages: [String] {
         var images = [item.imageName]
@@ -70,7 +71,8 @@ struct BorrowedItemDetailView: View {
                     ItemDetailHeaderView(
                         productImages: productImages,
                         currentPage: $currentPage,
-                        infoCornerRadius: infoCornerRadius
+                        infoCornerRadius: infoCornerRadius,
+                        horizontalSizeClass: horizontalSizeClass
                     )
                     .offset(y: -86)
 
@@ -78,7 +80,8 @@ struct BorrowedItemDetailView: View {
                         ItemInfoPanelView(
                             item: item,
                             sampleReviews: [],
-                            infoCornerRadius: infoCornerRadius
+                            infoCornerRadius: infoCornerRadius,
+                            horizontalSizeClass: horizontalSizeClass
                         )
                         
                         VStack(alignment: .leading, spacing: 8) {

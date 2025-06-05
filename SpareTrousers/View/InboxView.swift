@@ -10,6 +10,7 @@ import SwiftUI
 struct InboxView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @StateObject private var viewModel = InboxViewModel()
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     let topSectionCornerRadius: CGFloat = 18
     @State private var showingAddDummyMessageModal = false
@@ -19,17 +20,19 @@ struct InboxView: View {
             VStack(spacing: 0) {
                 InboxHeaderView(
                     topSectionCornerRadius: topSectionCornerRadius,
-                    showingAddDummyMessageModal: $showingAddDummyMessageModal
+                    showingAddDummyMessageModal: $showingAddDummyMessageModal,
+                    horizontalSizeClass: horizontalSizeClass
                 )
-                .offset(y: -86)
+                .offset(y: horizontalSizeClass == .compact ? -86 : 0)
                 .zIndex(1)
 
                 InboxContentView(
                     viewModel: viewModel,
                     topSectionCornerRadius: topSectionCornerRadius,
-                    geo: geo
+                    geo: geo,
+                    horizontalSizeClass: horizontalSizeClass
                 )
-                .offset(y: -68)
+                .offset(y: horizontalSizeClass == .compact ? -68 : 0)
             }
             .background(Color.appOffWhite.edgesIgnoringSafeArea(.all))
             .sheet(isPresented: $showingAddDummyMessageModal) {
@@ -46,6 +49,8 @@ struct InboxView: View {
                     viewModel.errorMessage = "User not logged in."
                 }
             }
+            .navigationTitle(horizontalSizeClass == .regular ? "Inbox" : "")
+            .navigationBarHidden(horizontalSizeClass == .compact)
         }
     }
 }
@@ -53,6 +58,7 @@ struct InboxView: View {
 struct InboxHeaderView: View {
     let topSectionCornerRadius: CGFloat
     @Binding var showingAddDummyMessageModal: Bool
+    let horizontalSizeClass: UserInterfaceSizeClass?
 
     var body: some View {
         VStack(spacing: 10) {
@@ -62,6 +68,7 @@ struct InboxHeaderView: View {
                 .first?.windows
                 .filter { $0.isKeyWindow }
                 .first?.safeAreaInsets.top ?? 0 + 30)
+            
 
             HStack {
                 Text("Inbox")
@@ -82,6 +89,7 @@ struct InboxHeaderView: View {
             .padding(.horizontal)
         }
         .padding(.bottom, 10).background(Color.appBlue.edgesIgnoringSafeArea(.top))
+        .background(Color.appBlue.edgesIgnoringSafeArea(horizontalSizeClass == .compact ? .top : []))
         .clipShape(RoundedCorner(radius: topSectionCornerRadius, corners: [.bottomLeft, .bottomRight]))
     }
 }
@@ -90,6 +98,7 @@ struct InboxContentView: View {
     @ObservedObject var viewModel: InboxViewModel
     let topSectionCornerRadius: CGFloat
     let geo: GeometryProxy
+    let horizontalSizeClass: UserInterfaceSizeClass?
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -165,7 +174,9 @@ struct InboxMessageRow: View {
                               rejectAction: { viewModel.handleLenderConfirmReceiptAction(message: message, didReceive: false) })
             }
         }
-        .padding().background(Color.appWhite).cornerRadius(10)
+        .padding()
+        .background(Color.appWhite)
+        .cornerRadius(10)
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(message.isRead ? Color.appOffWhite : Color.appBlack.opacity(0.7), lineWidth: message.isRead ? 1 : 2))
         .opacity(message.isRead ? 0.8 : 1.0)
         .contentShape(Rectangle())

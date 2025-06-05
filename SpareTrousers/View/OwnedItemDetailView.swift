@@ -8,6 +8,7 @@ struct OwnedItemDetailView: View {
     @State private var currentPage = 0
     @State private var showingEditItemView = false
     @EnvironmentObject var homeVM: HomeViewModel
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
 
     var productImages: [String] {
         var images = [item.imageName]
@@ -36,14 +37,16 @@ struct OwnedItemDetailView: View {
                     ItemDetailHeaderView(
                         productImages: productImages,
                         currentPage: $currentPage,
-                        infoCornerRadius: infoCornerRadius
+                        infoCornerRadius: infoCornerRadius,
+                        horizontalSizeClass: horizontalSizeClass
                     )
                     .offset(y: -86)
 
                     ItemInfoPanelView(
                         item: item,
                         sampleReviews: sampleReviews,
-                        infoCornerRadius: infoCornerRadius
+                        infoCornerRadius: infoCornerRadius,
+                        horizontalSizeClass: horizontalSizeClass
                     )
                     .offset(y: -60)
                 }

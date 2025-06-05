@@ -5,6 +5,9 @@ struct MyRentalsView: View {
     @EnvironmentObject private var homeVM_env: HomeViewModel
     @EnvironmentObject private var authVM_env: AuthViewModel
     @StateObject private var myRentalVM: MyRentalViewModel
+    
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    
     @State private var isPresentingAddItem = false
     let topSectionCornerRadius: CGFloat = 18
     
@@ -41,12 +44,12 @@ struct MyRentalsView: View {
                     .padding(.horizontal)
                 }
                 .padding(.bottom, 10)
-                .background(Color.appBlue.edgesIgnoringSafeArea(.top))
+                .background(Color.appBlue.edgesIgnoringSafeArea(horizontalSizeClass == .compact ? .top : []))
                 .clipShape(
                     RoundedCorner(radius: topSectionCornerRadius,
                                   corners: [.bottomLeft, .bottomRight])
                 )
-                .offset(y: -86)
+                .offset(y: horizontalSizeClass == .compact ? -86 : 0)
 
                 // ───── WHITE ROUNDED CONTENT ─────
                 ZStack(alignment: .top) {
@@ -57,114 +60,119 @@ struct MyRentalsView: View {
                                 corners: [.topLeft, .topRight]
                             )
                         )
-
-                    VStack(spacing: 16) {
-                        Text("My Borrowing")
-                            .font(.custom("MarkerFelt-Wide", size: 24))
-                            .foregroundColor(.appBlack)
-                            .padding(.leading, 5)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-
-                        ScrollView {
-                            if myRentalVM.isLoading && myRentalVM.myBorrowedEntries.isEmpty {
-                                ProgressView("Loading borrowed items...")
-                                    .padding()
-                            } else if let errorMessage = myRentalVM.errorMessage {
-                                Text("Error: \(errorMessage)")
-                                    .foregroundColor(.red)
-                                    .padding()
-                            } else if myRentalVM.myBorrowedEntries.isEmpty {
-                                Text(
-                                    "You are not currently borrowing any items."
-                                )
-                                .foregroundColor(.appOffGray)
-                                .padding()
-                                .frame(maxWidth: .infinity, alignment: .center)
-                            } else {
-                                VStack(spacing: 2) {
-                                    ForEach(
-                                        myRentalVM.myBorrowedEntries,
-                                        id: \.item.id
-                                    ) { entry in
-                                        NavigationLink(
-                                            destination: BorrowedItemDetailView(item: entry.item, transaction: entry.transaction)
-                                        ) {
-                                            RentalRow(item: entry.item,
-                                                      transaction: entry.transaction,
-                                                      lenderDisplayName: entry.lenderDisplayName,
-                                                      isBorrowing: true)
-                                        }
-                                    }
-                                }
-                                .padding(.horizontal)
-                            }
-                        }
-                        .frame(maxHeight: 250)
-                        .background(Color.appWhite)
-                        .cornerRadius(10)
-
-                        HStack {
-                            Text("My Lending")
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            Text("My Borrowing")
                                 .font(.custom("MarkerFelt-Wide", size: 24))
                                 .foregroundColor(.appBlack)
-                            Spacer()
-                            Button {
-                                isPresentingAddItem = true
-                            } label: {
-                                Image(systemName: "plus")
-                                    .font(.title2)
-                                    .foregroundColor(.appBlack)
-                            }
-                            .sheet(isPresented: $isPresentingAddItem) {
-                                AddItemsView()
-                                    .environmentObject(
-                                        homeVM_env
-                                    )
-                            }
-                        }
-                        .padding(.horizontal, 5)
+                                .padding(.leading, 5)
+                                .frame(maxWidth: .infinity, alignment: .leading)
 
-                        ScrollView {
-                            if myRentalVM.isLoading && myRentalVM.myLendingItems.isEmpty {
-                                ProgressView("Loading your items...")
-                            } else if myRentalVM.myLendingItems.isEmpty {
-                                Text(
-                                    "You haven't listed any items for lending yet."
-                                )
-                                .foregroundColor(.appOffGray)
-                                .padding()
-                                .frame(maxWidth: .infinity, alignment: .center)
-                            } else {
-                                VStack(spacing: 2) {
-                                    ForEach(myRentalVM.myLendingItems) { item in
-                                        NavigationLink(
-                                            destination: OwnedItemDetailView(
-                                                item: item
-                                            )
-                                        ) {
-                                            RentalRow(
-                                                item: item,
-                                                isBorrowing: false
-                                            )
+                            ScrollView(.vertical, showsIndicators: false) {
+                                if myRentalVM.isLoading && myRentalVM.myBorrowedEntries.isEmpty {
+                                    ProgressView("Loading borrowed items...")
+                                        .padding()
+                                } else if let errorMessage = myRentalVM.errorMessage {
+                                    Text("Error: \(errorMessage)")
+                                        .foregroundColor(.red)
+                                        .padding()
+                                } else if myRentalVM.myBorrowedEntries.isEmpty {
+                                    Text(
+                                        "You are not currently borrowing any items."
+                                    )
+                                    .foregroundColor(.appOffGray)
+                                    .padding()
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                } else {
+                                    VStack(spacing: 2) {
+                                        ForEach(
+                                            myRentalVM.myBorrowedEntries,
+                                            id: \.item.id
+                                        ) { entry in
+                                            NavigationLink(
+                                                destination: BorrowedItemDetailView(item: entry.item, transaction: entry.transaction)
+                                            ) {
+                                                RentalRow(item: entry.item,
+                                                          transaction: entry.transaction,
+                                                          lenderDisplayName: entry.lenderDisplayName,
+                                                          isBorrowing: true)
+                                            }
                                         }
                                     }
+                                    .padding(.horizontal)
                                 }
-                                .padding(.horizontal)
                             }
+                            .frame(maxHeight: horizontalSizeClass == .compact ? 250 : 350)
+                            .background(Color.appWhite)
+                            .cornerRadius(10)
+
+                            HStack {
+                                Text("My Lending")
+                                    .font(.custom("MarkerFelt-Wide", size: 24))
+                                    .foregroundColor(.appBlack)
+                                Spacer()
+                                Button {
+                                    isPresentingAddItem = true
+                                } label: {
+                                    Image(systemName: "plus")
+                                        .font(.title2)
+                                        .foregroundColor(.appBlack)
+                                }
+                                .sheet(isPresented: $isPresentingAddItem) {
+                                    AddItemsView()
+                                        .environmentObject(
+                                            homeVM_env
+                                        )
+                                }
+                            }
+                            .padding(.horizontal, 5)
+
+                            ScrollView(.vertical, showsIndicators: false) {
+                                if myRentalVM.isLoading && myRentalVM.myLendingItems.isEmpty {
+                                    ProgressView("Loading your items...")
+                                } else if myRentalVM.myLendingItems.isEmpty {
+                                    Text(
+                                        "You haven't listed any items for lending yet."
+                                    )
+                                    .foregroundColor(.appOffGray)
+                                    .padding()
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                } else {
+                                    VStack(spacing: 2) {
+                                        ForEach(myRentalVM.myLendingItems) { item in
+                                            NavigationLink(
+                                                destination: OwnedItemDetailView(
+                                                    item: item
+                                                )
+                                            ) {
+                                                RentalRow(
+                                                    item: item,
+                                                    isBorrowing: false
+                                                )
+                                            }
+                                        }
+                                    }
+                                    .padding(.horizontal)
+                                }
+                            }
+                            .frame(maxHeight: horizontalSizeClass == .compact ? 250 : 350)
+                            .background(Color.appWhite)
+                            .cornerRadius(10)
+                            
+                            Spacer(minLength: horizontalSizeClass == .compact ? 0 : 80)
                         }
-                        .frame(maxHeight: 250)
-                        .background(Color.appWhite)
-                        .cornerRadius(10)
+                        .padding(.top, 16)
+                        .padding(.horizontal, horizontalSizeClass == .compact ? nil : 20)
+                        .padding(.bottom, 24)
                     }
-                    .padding(.top, 16)
-                    .padding(.horizontal)
-                    .padding(.bottom, 24)
                 }
-                .frame(width: geo.size.width, height: geo.size.height + 86)
+                .frame(width: geo.size.width, height: geo.size.height + (horizontalSizeClass == .compact ? 86 : 0))
                 .ignoresSafeArea(edges: .bottom)
-                .offset(y: -68)
+                .offset(y: horizontalSizeClass == .compact ? -68 : 0)
             }
             .background(Color.appOffWhite.edgesIgnoringSafeArea(.all))
+            .navigationTitle(horizontalSizeClass == .regular ? "My Rentals" : "")
+            .navigationBarHidden(horizontalSizeClass == .compact)
         }
     }
 }

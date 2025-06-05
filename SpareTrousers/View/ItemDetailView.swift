@@ -17,6 +17,7 @@ struct Review: Identifiable {
 struct ItemDetailView: View {
     let item: DisplayItem
     @State private var currentPage = 0
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
 
     var productImages: [String] {
         var images = [item.imageName]
@@ -36,31 +37,42 @@ struct ItemDetailView: View {
         ZStack(alignment: .bottom) {
             Color.appOffWhite.edgesIgnoringSafeArea(.all)
 
-            Color.appWhite
-                .offset(y: 290)
-                .edgesIgnoringSafeArea(.bottom)
+            if horizontalSizeClass == .compact {
+                            Color.appWhite
+                                .offset(y: 290)
+                                .edgesIgnoringSafeArea(.bottom)
+                        } else {
+                            Color.appWhite
+                                .edgesIgnoringSafeArea([.horizontal, .bottom])
+                        }
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
                     ItemDetailHeaderView(
                         productImages: productImages,
                         currentPage: $currentPage,
-                        infoCornerRadius: infoCornerRadius
+                        infoCornerRadius: infoCornerRadius,
+                        horizontalSizeClass: horizontalSizeClass
                     )
-                    .offset(y: -86)
+                    .offset(y: horizontalSizeClass == .compact ? -86 : 0)
 
                     ItemInfoPanelView(
                         item: item,
                         sampleReviews: sampleReviews,
-                        infoCornerRadius: infoCornerRadius
+                        infoCornerRadius: infoCornerRadius,
+                        horizontalSizeClass: horizontalSizeClass
                     )
-                    .offset(y: -60)
+                    .offset(y: horizontalSizeClass == .compact ? -60 : 0)
+                                        .padding(.horizontal, horizontalSizeClass == .regular ? 20 : 0)
+                                        .frame(maxWidth: horizontalSizeClass == .regular ? 700 : .infinity, alignment: .center)
                 }
             }
 
             BorrowButtonModified(item: item)
-                .padding(.horizontal)
-                .padding(.bottom, safeAreaBottomInset())
+                .padding(.horizontal, horizontalSizeClass == .compact ? nil : 40)
+                                .padding(.bottom, safeAreaBottomInset())
+                                .frame(maxWidth: horizontalSizeClass == .regular ? 500 : .infinity)
+                                .padding(.horizontal, horizontalSizeClass == .regular ? (UIScreen.main.bounds.width - 500) / 2 : 0)
         }
         .navigationTitle(item.name)
         .navigationBarTitleDisplayMode(.inline)
@@ -78,21 +90,22 @@ struct ItemDetailHeaderView: View {
     let productImages: [String]
     @Binding var currentPage: Int
     let infoCornerRadius: CGFloat
+    let horizontalSizeClass: UserInterfaceSizeClass?
 
     var body: some View {
         ZStack(alignment: .bottom) {
             Color.appBlue
-                .frame(height: 380)
+                .frame(height: horizontalSizeClass == .compact ? 380 : 420)
                 .clipShape(
                     RoundedCorner(radius: infoCornerRadius,
                                   corners: [.bottomLeft, .bottomRight])
                 )
-                .edgesIgnoringSafeArea(.top)
+                .edgesIgnoringSafeArea(horizontalSizeClass == .compact ? .top : [])
 
             ImageCarouselViewFromUser(images: productImages,
                                       currentPage: $currentPage)
-               .frame(width: UIScreen.main.bounds.width * 0.8,
-                      height: 250)
+            .frame(width: UIScreen.main.bounds.width * (horizontalSizeClass == .compact ? 0.8 : 0.6),
+                                  height: horizontalSizeClass == .compact ? 250 : 300)
                .padding(.bottom, 20)
         }
     }
@@ -102,11 +115,12 @@ struct ItemInfoPanelView: View {
     let item: DisplayItem
     let sampleReviews: [Review]
     let infoCornerRadius: CGFloat
+    let horizontalSizeClass: UserInterfaceSizeClass?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(item.name)
-                .font(.system(size: 24, weight: .bold))
+                .font(.system(size: horizontalSizeClass == .compact ? 24 : 28, weight: .bold))
                 .foregroundColor(.appBlack)
 
             HStack(spacing: 12) {
@@ -116,7 +130,7 @@ struct ItemInfoPanelView: View {
             }
 
             Text(item.rentalPrice)
-                .font(.title3)
+                .font(horizontalSizeClass == .compact ? .title3 : .title2)
                 .fontWeight(.semibold)
                 .foregroundColor(.appBlack)
 
@@ -124,16 +138,16 @@ struct ItemInfoPanelView: View {
 
             ItemReviewsSection(sampleReviews: sampleReviews)
             
-            Spacer(minLength: 120)
+            Spacer(minLength: horizontalSizeClass == .compact ? 120 : 150)
         }
-        .padding()
-        .background(Color.appWhite)
-        .clipShape(
-            RoundedCorner(
-                radius: infoCornerRadius,
-                corners: [.topLeft, .topRight]
-            )
-        )
+        padding()
+                .background(Color.appWhite)
+                .clipShape(
+                    RoundedCorner(
+                        radius: infoCornerRadius,
+                        corners: [.topLeft, .topRight]
+                    )
+                )
     }
 }
 

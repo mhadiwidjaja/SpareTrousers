@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct LoginRegisterView: View {
-
     @ObservedObject var viewModel: AuthViewModel
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     @State private var loginEmail = ""
     @State private var loginPassword = ""
@@ -25,7 +25,7 @@ struct LoginRegisterView: View {
 
             VStack(spacing: 0) { // Main Card
                 // Blue Header
-                VStack(spacing: 16) { /* ... Header content ... */
+                VStack(spacing: 16) {
                     Spacer().frame(height: 24)
                     ZStack {
                         Color.appBlue
@@ -41,9 +41,17 @@ struct LoginRegisterView: View {
                             .font(.custom("MarkerFelt-Wide", size: 24))
                             .foregroundColor(.appWhite)
                             .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
                         Text("Spare Trousers")
                             .font(.custom("MarkerFelt-Wide", size: 40))
                             .foregroundColor(.appWhite)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
+                            .shadow(color: .appBlack, radius: 1)
                             .shadow(color: .appBlack, radius: 1)
                     }
                 }
@@ -114,6 +122,10 @@ struct LoginRegisterView: View {
                             Text("LOGIN")
                                 .font(.custom("MarkerFelt-Wide", size: 48))
                                 .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
+                                .shadow(color: .appBlack, radius: 1)
                                 .frame(maxWidth: .infinity).frame(height: 66)
                         }
                     }
@@ -132,7 +144,9 @@ struct LoginRegisterView: View {
                 RoundedRectangle(cornerRadius: 20)
                     .stroke(Color.appBlack, lineWidth: 4)
             )
-            .padding(24)
+            .padding(horizontalSizeClass == .compact ? 24 : 40)
+            .padding(.vertical, 24)
+            .frame(maxWidth: horizontalSizeClass == .compact ? .infinity : 500)
 
             Spacer()
         }
@@ -245,9 +259,17 @@ private struct RegisterHeader: View {
                     .font(.custom("MarkerFelt-Wide", size: 24))
                     .foregroundColor(.appWhite)
                     .shadow(color: .appBlack, radius: 1)
+                    .shadow(color: .appBlack, radius: 1)
+                    .shadow(color: .appBlack, radius: 1)
+                    .shadow(color: .appBlack, radius: 1)
+                    .shadow(color: .appBlack, radius: 1)
                 Text("Spare Trousers")
                     .font(.custom("MarkerFelt-Wide", size: 40))
                     .foregroundColor(.appWhite)
+                    .shadow(color: .appBlack, radius: 1)
+                    .shadow(color: .appBlack, radius: 1)
+                    .shadow(color: .appBlack, radius: 1)
+                    .shadow(color: .appBlack, radius: 1)
                     .shadow(color: .appBlack, radius: 1)
             }
         }
@@ -360,6 +382,10 @@ private struct RegisterForm: View {
                 } else {
                     Text("REGISTER")
                         .font(.custom("MarkerFelt-Wide", size: 48))
+                        .shadow(color: .appBlack, radius: 1)
+                        .shadow(color: .appBlack, radius: 1)
+                        .shadow(color: .appBlack, radius: 1)
+                        .shadow(color: .appBlack, radius: 1)
                         .shadow(color: .appBlack, radius: 1)
                         .frame(maxWidth: .infinity).frame(height: 66)
                 }
