@@ -13,27 +13,23 @@ import FirebaseDatabase
 class AuthViewModel: ObservableObject {
     @Published var userSession: UserSession? = nil
     @Published var isLoading: Bool = false
+    @Published var successMessage: String? = nil // Added for explicit success messages
     @Published var errorMessage: String?
     @Published var userAddress: String? = nil
 
     private var ref: DatabaseReference!
     private var cancellables = Set<AnyCancellable>()
 
-    // Initializes the AuthViewModel
     init() {
         ref = Database.database().reference()
         checkAuthState()
 
-        // Publisher pipeline to fetch user address and display name when UID is available
         $userSession
             .compactMap { $0?.uid }
             .flatMap { [weak self] uid -> AnyPublisher<(address: String?, displayName: String?), Never> in
-                guard let self = self else {
-                    return Just((nil, nil)).eraseToAnyPublisher()
-                }
+                guard let self = self else { return Just((nil, nil)).eraseToAnyPublisher() }
                 let addressPublisher = self.fetchUserAddress(uid: uid)
                 let displayNamePublisher = self.fetchUserDisplayName(uid: uid)
-                
                 return Publishers.Zip(addressPublisher, displayNamePublisher)
                     .map { (address: $0.0, displayName: $0.1) }
                     .eraseToAnyPublisher()
@@ -48,7 +44,6 @@ class AuthViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
-        // Publisher to clear userAddress when userSession becomes nil
         $userSession
             .filter { $0 == nil }
             .sink { [weak self] _ in
@@ -57,44 +52,47 @@ class AuthViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    // Checks the current Firebase authentication state.
     func checkAuthState() {
         if let user = Auth.auth().currentUser {
             self.userSession = UserSession(uid: user.uid, email: user.email, displayName: user.displayName)
         } else {
-            self.userSession = nil
-            self.userAddress = nil
+            self.userSession = nil; self.userAddress = nil
         }
     }
 
-    // Handles user login with email and password.
     func login(email: String, password: String) {
         isLoading = true
-        errorMessage = nil
+        errorMessage = nil // Clear previous errors
+        successMessage = nil // Clear previous success messages
+        
         Auth.auth().signIn(withEmail: email, password: password) { [weak self] result, error in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 self.isLoading = false
                 if let error = error {
-                    self.errorMessage = error.localizedDescription; return
+                    self.errorMessage = error.localizedDescription
+                    return
                 }
                 if let user = result?.user {
                     self.userSession = UserSession(uid: user.uid, email: user.email, displayName: user.displayName)
+                    self.successMessage = "Login Successful!" // Navigation will happen due to userSession change
+                    // Clear message after a delay if not navigating immediately
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { self.successMessage = nil }
                 }
             }
         }
     }
 
-    // Handles user registration with email, password, display name, and address.
     func register(email: String, password: String, displayName: String, address: String) {
         isLoading = true
-        errorMessage = nil
+        errorMessage = nil // Clear previous errors
+        successMessage = nil // Clear previous success messages
+
         Auth.auth().createUser(withEmail: email, password: password) { [weak self] authResult, error in
             guard let self = self else { return }
             if let error = error {
                 DispatchQueue.main.async {
-                    self.isLoading = false
-                    self.errorMessage = error.localizedDescription
+                    self.isLoading = false; self.errorMessage = error.localizedDescription
                 }
                 return
             }
@@ -103,13 +101,35 @@ class AuthViewModel: ObservableObject {
                 changeRequest.displayName = displayName
                 changeRequest.commitChanges { [weak self] error in
                     guard let self = self else { return }
-                    DispatchQueue.main.async {
-                        self.isLoading = false
-                        if let error = error {
-                            self.errorMessage = "Failed to set display name: \(error.localizedDescription)"
+                    // isLoading should be set to false after all operations (including DB save)
+                    // For now, setting it after display name commit or its error.
+                    if let error = error {
+                        DispatchQueue.main.async {
+                            // Still proceed to save other details even if display name auth update fails
+                            // But show this as a specific error, maybe non-fatal.
+                            self.errorMessage = "User created, but failed to set display name on Auth: \(error.localizedDescription)"
+                            // Set userSession and save other details
+                            self.userSession = UserSession(uid: user.uid, email: user.email, displayName: displayName) // Use intended displayName
+                            self.saveUserDetails(uid: user.uid, email: email, displayName: displayName, address: address) { success in
+                                self.isLoading = false // Final loading state update
+                                if success {
+                                     self.successMessage = "Registration Successful (with display name note)!"
+                                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) { self.successMessage = nil }
+                                }
+                                // Error from saveUserDetails will set self.errorMessage
+                            }
                         }
-                        self.userSession = UserSession(uid: user.uid, email: user.email, displayName: displayName)
-                        self.saveUserDetails(uid: user.uid, email: email, displayName: displayName, address: address)
+                        return
+                    }
+                    // Display name on Auth successful, now save all details
+                    self.userSession = UserSession(uid: user.uid, email: user.email, displayName: displayName)
+                    self.saveUserDetails(uid: user.uid, email: email, displayName: displayName, address: address) { success in
+                        self.isLoading = false // Final loading state update
+                        if success {
+                            self.successMessage = "Registration Successful!"
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { self.successMessage = nil }
+                        }
+                        // Error from saveUserDetails will set self.errorMessage
                     }
                 }
             } else {
@@ -121,54 +141,46 @@ class AuthViewModel: ObservableObject {
         }
     }
 
-    // Saves user details to Firebase Realtime Database.
-    private func saveUserDetails(uid: String, email: String, displayName: String, address: String) {
+    // Modified saveUserDetails to include a completion handler for success/failure of this specific step
+    private func saveUserDetails(uid: String, email: String, displayName: String, address: String, completion: @escaping (Bool) -> Void) {
         let userData: [String: Any] = [
-            "email": email,
-            "displayName": displayName,
-            "address": address
+            "email": email, "displayName": displayName, "address": address
         ]
         self.ref.child("users").child(uid).setValue(userData) { [weak self] error, _ in
             DispatchQueue.main.async {
                 if let error = error {
                     self?.errorMessage = "Failed to save user details: \(error.localizedDescription)"
+                    completion(false)
                 } else {
-                    print("User details (including displayName and address) saved successfully.")
+                    print("User details saved successfully.")
                     self?.userAddress = address
-                    if self?.userSession?.uid == uid {
-                         self?.userSession?.displayName = displayName
-                    }
+                    if self?.userSession?.uid == uid { self?.userSession?.displayName = displayName }
+                    completion(true)
                 }
             }
         }
     }
     
-    // Fetches user display name from Firebase Realtime Database.
+    // ... (fetchUserDisplayName, fetchUserAddress, logout, updateUserAddress, updateUserDisplayName remain the same) ...
     func fetchUserDisplayName(uid: String) -> AnyPublisher<String?, Never> {
         Future<String?, Never> { [weak self] promise in
             guard let self = self else { promise(.success(nil)); return }
             self.ref.child("users").child(uid).child("displayName").observeSingleEvent(of: .value) { snapshot in
                 promise(.success(snapshot.value as? String))
             } withCancel: { error in
-                print("Failed to fetch displayName: \(error.localizedDescription)")
-                promise(.success(nil))
+                print("Failed to fetch displayName: \(error.localizedDescription)"); promise(.success(nil))
             }
-        }
-        .eraseToAnyPublisher()
+        }.eraseToAnyPublisher()
     }
-
-    // Fetches user address from Firebase Realtime Database.
     func fetchUserAddress(uid: String) -> AnyPublisher<String?, Never> {
         Future<String?, Never> { [weak self] promise in
             guard let self = self else { promise(.success(nil)); return }
             self.ref.child("users").child(uid).child("address").observeSingleEvent(of: .value) { snapshot in
                 promise(.success(snapshot.value as? String))
             } withCancel: { error in
-                print("Failed to fetch address: \(error.localizedDescription)")
-                promise(.success(nil))
+                print("Failed to fetch address: \(error.localizedDescription)"); promise(.success(nil))
             }
-        }
-        .eraseToAnyPublisher()
+        }.eraseToAnyPublisher()
     }
 
     // Logs out the current user.

@@ -136,7 +136,7 @@ class HomeViewModel: ObservableObject {
         if let currentUID = self.currentUserID {
             filteredItems = filteredItems.filter { $0.ownerUid != currentUID }
         }
-        
+         
         filteredItems = filteredItems.filter { $0.isAvailable == true }
 
         // Filter by selected category
