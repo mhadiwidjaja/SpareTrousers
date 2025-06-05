@@ -13,6 +13,13 @@ struct AccountView: View {
     @State private var isShowingAccountSettingsModal = false
     let topSectionCornerRadius: CGFloat = 18
     
+    // Helper to get the top safe area inset
+    private var topInset: CGFloat {
+        (UIApplication.shared.connectedScenes
+            .first { $0.activationState == .foregroundActive } as? UIWindowScene)?
+            .windows.first?.safeAreaInsets.top ?? 0
+    }
+    
     private var displayEmail: String {
         authViewModel.userSession?.email ?? "Email not available"
     }
@@ -30,22 +37,19 @@ struct AccountView: View {
             VStack(spacing: 0) {
                 // ───── BLUE HEADER + PROFILE CARD ─────
                 ZStack(alignment: .top) {
+                    // MODIFICATION 1: Ensure this Color view is what extends up
                     Color.appBlue
-                        .edgesIgnoringSafeArea(.top)
+                        .edgesIgnoringSafeArea(.top) // Make the blue background extend to the very top
 
-                    VStack(spacing: 12) {
-                        Spacer()
-                            .frame(
-                                height: (
-                                    horizontalSizeClass == .compact ? UIApplication.shared.connectedScenes // Compact: iPhone logic
-                                        .filter {
-                                            $0.activationState == .foregroundActive
-                                        }
-                                        .compactMap { $0 as? UIWindowScene }
-                                        .first?.windows
-                                        .filter { $0.isKeyWindow }
-                                        .first?.safeAreaInsets.top ?? 0 : 0) + 30
-                            )
+                    VStack(spacing: 12) { // This VStack contains the header content + profile card
+                        // MODIFICATION 2: Adjust Spacer for content positioning within the full-bleed header
+                        // The original `(... ? safeAreaInsets.top ?? 0 : 0) + 30` calculation
+                        // was specific to how it was originally structured.
+                        // Now, similar to TopNavBar, use `topInset` and then add padding if needed.
+                        Spacer().frame(height: topInset) // Position content below status bar
+                        
+                        // Optional: Add a little more padding if the +30 was desired for aesthetics
+                        // Spacer().frame(height: 10) // e.g., for an additional 10pt padding
 
                         HStack {
                             Text("Account")
@@ -63,6 +67,9 @@ struct AccountView: View {
                                 .frame(width: 50, height: 50)
                         }
                         .padding(.horizontal)
+                        // The original `+30` in the spacer might have been to give more space
+                        // above the "Account" text. If so, add a .padding(.top) to the HStack:
+                        // .padding(.top, 15) // Adjust as needed
 
                         VStack(alignment: .leading, spacing: 10) {
                             VStack(alignment: .leading, spacing: 2) {
@@ -115,7 +122,7 @@ struct AccountView: View {
                     RoundedCorner(radius: topSectionCornerRadius,
                                   corners: [.bottomLeft, .bottomRight])
                 )
-                .offset(y: horizontalSizeClass == .compact ? -86 : 0)
+                .offset(y: horizontalSizeClass == .compact ? -86 : 0) // iPhone-specific offset
 
                 // ───── WHITE SETTINGS AREA ─────
                 ZStack(alignment: .top) {
@@ -152,9 +159,7 @@ struct AccountView: View {
                             print("Logout button tapped.")
                         } label: {
                             HStack {
-                                Image(
-                                    systemName: "rectangle.portrait.and.arrow.right.fill"
-                                )
+                                Image(systemName: "rectangle.portrait.and.arrow.right.fill")
                                 .font(.largeTitle)
                                 .foregroundColor(.red)
                                 .frame(width: 64, height: 64)
@@ -182,22 +187,21 @@ struct AccountView: View {
                     .padding(.top, 24)
                 }
                 .frame(
-width: geo.size.width,
-                       height: geo.size
-    .height + (horizontalSizeClass == .compact ? 86 : 0) - (
-        horizontalSizeClass == .compact ? 260 : 300
-    ) + 16 + 20
+                    width: geo.size.width,
+                    height: geo.size.height + (horizontalSizeClass == .compact ? 86 : 0) - (horizontalSizeClass == .compact ? 260 : 300) + 16 + 20
                 )
                 .ignoresSafeArea(edges: .bottom)
-                .offset(y: horizontalSizeClass == .compact ? -68 : 0)
+                .offset(y: horizontalSizeClass == .compact ? -68 : 0) // iPhone-specific offset
             }
             .background(Color.appOffWhite.edgesIgnoringSafeArea(.all))
             .sheet(isPresented: $isShowingAccountSettingsModal) {
                 AccountSettingsModalView()
                     .environmentObject(authViewModel)
             }
-            .navigationTitle(horizontalSizeClass == .regular ? "Account" : "")
-            .navigationBarHidden(horizontalSizeClass == .compact)
+            // MODIFICATION 3: Keep these navigation modifiers
+            .navigationTitle(horizontalSizeClass == .regular ? "" : "Account") // Empty title for iPad system bar
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarHidden(horizontalSizeClass == .compact) // Hide system bar on iPhone, show (empty) on iPad
         }
     }
 }

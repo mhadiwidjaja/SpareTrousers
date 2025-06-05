@@ -123,11 +123,12 @@ struct ItemInfoPanelView: View {
                 .font(.system(size: horizontalSizeClass == .compact ? 24 : 28, weight: .bold))
                 .foregroundColor(.appBlack)
 
-            HStack(spacing: 12) {
-                RatingViewFromUser(rating: 4.8, reviewCount: 69)
-                AvailabilityViewFromUser(isAvailable: item.isAvailable ?? true)
-                Spacer()
-            }
+//            HStack(spacing: 12) {
+////                RatingViewFromUser(rating: 4.8, reviewCount: 69)
+////                AvailabilityViewFromUser(isAvailable: item.isAvailable ?? true)
+////                Spacer()
+//                Text("Testing inside HStack")
+//            }
 
             Text(item.rentalPrice)
                 .font(horizontalSizeClass == .compact ? .title3 : .title2)

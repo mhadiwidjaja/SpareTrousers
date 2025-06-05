@@ -171,8 +171,13 @@ struct MyRentalsView: View {
                 .offset(y: horizontalSizeClass == .compact ? -68 : 0)
             }
             .background(Color.appOffWhite.edgesIgnoringSafeArea(.all))
-            .navigationTitle(horizontalSizeClass == .regular ? "My Rentals" : "")
-            .navigationBarHidden(horizontalSizeClass == .compact)
+            .navigationTitle(horizontalSizeClass == .regular ? "" : "My Rentals") // Set an EMPTY title for iPad
+            .navigationBarTitleDisplayMode(.inline) // Ensures the (empty) title doesn't take up too much space
+            .navigationBarHidden(horizontalSizeClass == .compact) // HIDE bar for iPhone (compact), SHOW for iPad (regular)
+            // --- MODIFICATIONS END HERE ---
+          //  .navigationTitle(horizontalSizeClass == .regular ? "My Rentals" : "")
+           // .navigationBarHidden(horizontalSizeClass == .compact)
+        //    .navigationBarHidden(true)
         }
     }
 }
