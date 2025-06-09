@@ -37,24 +37,35 @@ struct ItemDetailView: View {
         ZStack(alignment: .bottom) {
             Color.appOffWhite.edgesIgnoringSafeArea(.all)
 
-            if horizontalSizeClass == .compact {
-                            Color.appWhite
-                                .offset(y: 290)
-                                .edgesIgnoringSafeArea(.bottom)
-                        } else {
-                            Color.appWhite
-                                .edgesIgnoringSafeArea([.horizontal, .bottom])
-                        }
+            // ─── Background “white panel” ──────────────────────────────────────
+    //        if horizontalSizeClass == .compact {
+    //            Color.appWhite
+    //                .offset(y: 290)
+    //                .edgesIgnoringSafeArea(.bottom)
+    //        } else {
+    //            Color.appWhite
+    //                .edgesIgnoringSafeArea([.horizontal, .bottom])
+    //        }
 
+            // ─── HEADER ONLY ───────────────────────────────────────────────────
+            ItemDetailHeaderView(
+                productImages: productImages,
+                currentPage: $currentPage,
+                infoCornerRadius: infoCornerRadius,
+                horizontalSizeClass: horizontalSizeClass
+            )
+            .offset(y: horizontalSizeClass == .compact ? -86 : 0)
+
+            // ─── Info panel & scroll ───────────────────────────────────────────
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
-                    ItemDetailHeaderView(
-                        productImages: productImages,
-                        currentPage: $currentPage,
-                        infoCornerRadius: infoCornerRadius,
-                        horizontalSizeClass: horizontalSizeClass
-                    )
-                    .offset(y: horizontalSizeClass == .compact ? -86 : 0)
+//                    ItemDetailHeaderView(
+//                        productImages: productImages,
+//                        currentPage: $currentPage,
+//                        infoCornerRadius: infoCornerRadius,
+//                        horizontalSizeClass: horizontalSizeClass
+//                    )
+//                    .offset(y: horizontalSizeClass == .compact ? -86 : 0)
 
                     ItemInfoPanelView(
                         item: item,
@@ -63,19 +74,24 @@ struct ItemDetailView: View {
                         horizontalSizeClass: horizontalSizeClass
                     )
                     .offset(y: horizontalSizeClass == .compact ? -60 : 0)
-                                        .padding(.horizontal, horizontalSizeClass == .regular ? 20 : 0)
-                                        .frame(maxWidth: horizontalSizeClass == .regular ? 700 : .infinity, alignment: .center)
+                    .padding(.horizontal, horizontalSizeClass == .regular ? 20 : 0)
+                    .frame(
+                        maxWidth: horizontalSizeClass == .regular ? 700 : .infinity,
+                        alignment: .center
+                    )
                 }
             }
 
-            BorrowButtonModified(item: item)
-                .padding(.horizontal, horizontalSizeClass == .compact ? nil : 40)
-                                .padding(.bottom, safeAreaBottomInset())
-                                .frame(maxWidth: horizontalSizeClass == .regular ? 500 : .infinity)
-                                .padding(.horizontal, horizontalSizeClass == .regular ? (UIScreen.main.bounds.width - 500) / 2 : 0)
+            // ─── Borrow button ─────────────────────────────────────────────────
+    //        BorrowButtonModified(item: item)
+    //            .padding(.horizontal, horizontalSizeClass == .compact ? nil : 40)
+    //            .padding(.bottom, safeAreaBottomInset())
+    //            .frame(maxWidth: horizontalSizeClass == .regular ? 500 : .infinity)
+    //            .padding(.horizontal, horizontalSizeClass == .regular ? (UIScreen.main.bounds.width - 500) / 2 : 0)
         }
         .navigationTitle(item.name)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarHidden(false)
     }
     
     private func safeAreaBottomInset() -> CGFloat {
@@ -123,20 +139,20 @@ struct ItemInfoPanelView: View {
                 .font(.system(size: horizontalSizeClass == .compact ? 24 : 28, weight: .bold))
                 .foregroundColor(.appBlack)
 
-            HStack(spacing: 12) {
-                RatingViewFromUser(rating: 4.8, reviewCount: 69)
-                AvailabilityViewFromUser(isAvailable: item.isAvailable ?? true)
-                Spacer()
-            }
-
-            Text(item.rentalPrice)
-                .font(horizontalSizeClass == .compact ? .title3 : .title2)
-                .fontWeight(.semibold)
-                .foregroundColor(.appBlack)
-
-            ItemDescriptionSection(description: item.description)
-
-            ItemReviewsSection(sampleReviews: sampleReviews)
+//            HStack(spacing: 12) {
+//                RatingViewFromUser(rating: 4.8, reviewCount: 69)
+//                AvailabilityViewFromUser(isAvailable: item.isAvailable ?? true)
+//                Spacer()
+//            }
+//
+//            Text(item.rentalPrice)
+//                .font(horizontalSizeClass == .compact ? .title3 : .title2)
+//                .fontWeight(.semibold)
+//                .foregroundColor(.appBlack)
+//
+//            ItemDescriptionSection(description: item.description)
+//
+//            ItemReviewsSection(sampleReviews: sampleReviews)
             
             Spacer(minLength: horizontalSizeClass == .compact ? 120 : 150)
         }

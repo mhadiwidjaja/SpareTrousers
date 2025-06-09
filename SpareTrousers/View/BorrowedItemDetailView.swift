@@ -107,6 +107,7 @@ struct BorrowedItemDetailView: View {
         }
         .navigationTitle(item.name)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarHidden(false)
         .onAppear {
             fetchLenderName()
         }

@@ -122,7 +122,7 @@ struct RequestView: View {
                 .padding(.horizontal).padding(.bottom, 20)
             }
         }
-        .navigationTitle("Borrow Details").navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("Borrow Details").navigationBarTitleDisplayMode(.inline).navigationBarHidden(false)
         .alert(isPresented: $showAlert) {
             Alert(
                 title: Text(requestSuccessful ? "Success" : "Error"),

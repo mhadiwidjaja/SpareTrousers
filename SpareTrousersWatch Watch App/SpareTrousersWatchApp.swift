@@ -8,28 +8,25 @@
 import SwiftUI
 import FirebaseCore
 
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+  func application(_ application: UIApplication,
+                   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+    FirebaseApp.configure()
+
+    return true
+  }
+}
+
 @main
 struct SpareTrousersWatchApp: App {
-    @StateObject private var authViewModel = AuthViewModel()
-    @StateObject private var inboxViewModel = InboxViewModel()
-    
-    init() {
-        FirebaseApp.configure()
-        print("Firebase configured for SpareTrousersWatch!")
-    }
+  @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
-    var body: some Scene {
-        WindowGroup {
-            if authViewModel.userSession != nil {
-                WatchInboxView()
-                    .environmentObject(authViewModel)
-                    .environmentObject(inboxViewModel)
-            } else {
-                NavigationView {
-                    WatchLoginView()
-                        .environmentObject(authViewModel)
-                }
-            }
-        }
+  var body: some Scene {
+    WindowGroup {
+      NavigationView {
+        ContentView()
+      }
     }
+  }
 }

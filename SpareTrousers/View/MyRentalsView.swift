@@ -140,11 +140,15 @@ struct MyRentalsView: View {
                                 } else {
                                     VStack(spacing: 2) {
                                         ForEach(myRentalVM.myLendingItems) { item in
-                                            NavigationLink(
-                                                destination: OwnedItemDetailView(
-                                                    item: item
-                                                )
-                                            ) {
+//                                            NavigationLink(
+//                                                destination: OwnedItemDetailView(
+//                                                    item: item
+//                                                )
+//                                            ) {
+                                                NavigationLink(
+                                                    // isolate the crash by pushing a simple Text instead
+                                                    destination: Text("Isolated Owned: \(item.name)")
+                                                ) {
                                                 RentalRow(
                                                     item: item,
                                                     isBorrowing: false

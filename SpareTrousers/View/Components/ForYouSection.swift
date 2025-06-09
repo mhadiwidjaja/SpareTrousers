@@ -39,14 +39,16 @@ struct ForYouSection: View {
             } else {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(items) { item in
-                        NavigationLink(
-                            // Ensure ItemDetailView is correctly defined and accepts 'item'
-                            destination: ItemDetailView(item: item)
-                        ) {
+//                        NavigationLink(
+//                            // Ensure ItemDetailView is correctly defined and accepts 'item'
+//                            destination: ItemDetailView(item: item)
+//                        ) {
+                 //       NavigationLink(destination: Text("Isolated: \(item.name)")) {
+                        NavigationLink(destination: ItemDetailView(item: item)) {
                             ItemCardView(item: item)
                         }
                         // Apply a plain button style if you want to remove default NavigationLink styling from the card
-                        // .buttonStyle(PlainButtonStyle())
+                         .buttonStyle(PlainButtonStyle())
                     }
                 }
             }

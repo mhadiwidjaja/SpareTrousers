@@ -237,7 +237,7 @@ class HomeViewModel: ObservableObject {
             return
         }
         
-        let dataToUpdate = itemData
+        var dataToUpdate = itemData
         
         dbRef.child("items").child(itemId).updateChildValues(dataToUpdate) { error, _ in
             DispatchQueue.main.async {

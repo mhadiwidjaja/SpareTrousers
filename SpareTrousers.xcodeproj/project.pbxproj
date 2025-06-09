@@ -17,10 +17,6 @@
 		3FADA5D62DDED24F003A0900 /* FirebaseDynamicLinks in Frameworks */ = {isa = PBXBuildFile; productRef = 3FADA5D52DDED24F003A0900 /* FirebaseDynamicLinks */; };
 		3FADA5D82DDED24F003A0900 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 3FADA5D72DDED24F003A0900 /* FirebaseFunctions */; };
 		3FADA5DA2DDED24F003A0900 /* FirebaseInstallations in Frameworks */ = {isa = PBXBuildFile; productRef = 3FADA5D92DDED24F003A0900 /* FirebaseInstallations */; };
-		3FD57FF52DF16F7500D26488 /* SpareTrousersWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 3FB3F9A72DF1654B00DFDEC9 /* SpareTrousersWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		3FD57FF92DF16FC900D26488 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 3FD57FF82DF16FC900D26488 /* FirebaseAuth */; };
-		3FD57FFB2DF16FC900D26488 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3FD57FFA2DF16FC900D26488 /* FirebaseCore */; };
-		3FD57FFD2DF16FC900D26488 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 3FD57FFC2DF16FC900D26488 /* FirebaseDatabase */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,13 +34,6 @@
 			remoteGlobalIDString = 3FCF85482DDEC38200695E6B;
 			remoteInfo = SpareTrousers;
 		};
-		3FD57FF62DF16F7500D26488 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 3FCF85412DDEC38200695E6B /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 3FB3F9A62DF1654B00DFDEC9;
-			remoteInfo = "SpareTrousersWatch Watch App";
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -54,7 +43,6 @@
 			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
 			dstSubfolderSpec = 16;
 			files = (
-				3FD57FF52DF16F7500D26488 /* SpareTrousersWatch Watch App.app in Embed Watch Content */,
 			);
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -85,7 +73,6 @@
 				Model/InboxMessage.swift,
 				Model/Tab.swift,
 				Model/Transaction.swift,
-				Model/UserSession.swift,
 				Service/SeedingService.swift,
 				Utils/AppColors.swift,
 				ViewModel/AuthViewModel.swift,
@@ -103,7 +90,6 @@
 				Model/InboxMessage.swift,
 				Model/Tab.swift,
 				Model/Transaction.swift,
-				Model/UserSession.swift,
 				Service/SeedingService.swift,
 				Utils/AppColors.swift,
 				ViewModel/AuthViewModel.swift,
@@ -167,9 +153,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3FD57FFD2DF16FC900D26488 /* FirebaseDatabase in Frameworks */,
-				3FD57FFB2DF16FC900D26488 /* FirebaseCore in Frameworks */,
-				3FD57FF92DF16FC900D26488 /* FirebaseAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -216,7 +199,6 @@
 				3FCF85662DDEC38400695E6B /* SpareTrousersUITests */,
 				3FB3F9662DF162CC00DFDEC9 /* SpareTrousersMac */,
 				3FB3F9A82DF1654B00DFDEC9 /* SpareTrousersWatch Watch App */,
-				3FD57FF42DF16F7500D26488 /* Frameworks */,
 				3FCF854A2DDEC38200695E6B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -231,13 +213,6 @@
 				3FB3F9A72DF1654B00DFDEC9 /* SpareTrousersWatch Watch App.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		3FD57FF42DF16F7500D26488 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -282,9 +257,6 @@
 			);
 			name = "SpareTrousersWatch Watch App";
 			packageProductDependencies = (
-				3FD57FF82DF16FC900D26488 /* FirebaseAuth */,
-				3FD57FFA2DF16FC900D26488 /* FirebaseCore */,
-				3FD57FFC2DF16FC900D26488 /* FirebaseDatabase */,
 			);
 			productName = "SpareTrousersWatch Watch App";
 			productReference = 3FB3F9A72DF1654B00DFDEC9 /* SpareTrousersWatch Watch App.app */;
@@ -302,7 +274,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				3FD57FF72DF16F7500D26488 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				3FB3F98A2DF1644000DFDEC9 /* Shared */,
@@ -512,11 +483,6 @@
 			isa = PBXTargetDependency;
 			target = 3FCF85482DDEC38200695E6B /* SpareTrousers */;
 			targetProxy = 3FCF85642DDEC38400695E6B /* PBXContainerItemProxy */;
-		};
-		3FD57FF72DF16F7500D26488 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 3FB3F9A62DF1654B00DFDEC9 /* SpareTrousersWatch Watch App */;
-			targetProxy = 3FD57FF62DF16F7500D26488 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -998,21 +964,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3FADA5C62DDED24F003A0900 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseInstallations;
-		};
-		3FD57FF82DF16FC900D26488 /* FirebaseAuth */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 3FADA5C62DDED24F003A0900 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAuth;
-		};
-		3FD57FFA2DF16FC900D26488 /* FirebaseCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 3FADA5C62DDED24F003A0900 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseCore;
-		};
-		3FD57FFC2DF16FC900D26488 /* FirebaseDatabase */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 3FADA5C62DDED24F003A0900 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseDatabase;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

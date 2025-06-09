@@ -9,31 +9,61 @@ struct HomeView: View {
     
     private let topCornerRadius: CGFloat = 18
 
+//    var body: some View {
+//            if horizontalSizeClass == .compact {
+//                NavigationView {
+//                    ZStack(alignment: .bottom) {
+//                        Color.appOffWhite
+//                            .edgesIgnoringSafeArea(.all)
+//
+//                        content(for: homeViewModel.selectedTab, currentAuthViewModel: authViewModel)
+//                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+//                            .navigationBarHidden(true)
+//                            .navigationBarBackButtonHidden(true)
+//                        BottomNavBar(selectedTab: $homeViewModel.selectedTab)
+//                    }
+//                }
+//                .navigationViewStyle(StackNavigationViewStyle())
+//                .navigationBarHidden(true)  
+//                .environmentObject(homeViewModel)
+//            } else {
+//                NavigationView {
+//                    SidebarView(selectedTab: $homeViewModel.selectedTab, homeViewModel: homeViewModel, authViewModel: authViewModel)
+//                    content(for: homeViewModel.selectedTab, currentAuthViewModel: authViewModel)
+//                }
+//                .navigationViewStyle(DoubleColumnNavigationViewStyle())
+//                .environmentObject(homeViewModel)
+//            }
+//        }
     var body: some View {
-            if horizontalSizeClass == .compact {
-                NavigationView {
-                    ZStack(alignment: .bottom) {
-                        Color.appOffWhite
-                            .edgesIgnoringSafeArea(.all)
+        if horizontalSizeClass == .compact {
+            NavigationView {
+                ZStack(alignment: .bottom) {
+                    Color.appOffWhite
+                        .edgesIgnoringSafeArea(.all)
 
-                        content(for: homeViewModel.selectedTab, currentAuthViewModel: authViewModel)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .navigationBarHidden(true)
-                            .navigationBarBackButtonHidden(true)
-                        BottomNavBar(selectedTab: $homeViewModel.selectedTab)
-                    }
-                }
-                .navigationViewStyle(StackNavigationViewStyle())
-                .environmentObject(homeViewModel)
-            } else {
-                NavigationView {
-                    SidebarView(selectedTab: $homeViewModel.selectedTab, homeViewModel: homeViewModel, authViewModel: authViewModel)
                     content(for: homeViewModel.selectedTab, currentAuthViewModel: authViewModel)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                    BottomNavBar(selectedTab: $homeViewModel.selectedTab)
                 }
-                .navigationViewStyle(DoubleColumnNavigationViewStyle())
-                .environmentObject(homeViewModel)
             }
+            .navigationViewStyle(StackNavigationViewStyle())
+            .navigationBarHidden(true)   // hide only on the root
+            .environmentObject(homeViewModel)
+        } else {
+            NavigationView {
+                SidebarView(
+                    selectedTab: $homeViewModel.selectedTab,
+                    homeViewModel: homeViewModel,
+                    authViewModel: authViewModel
+                )
+                content(for: homeViewModel.selectedTab, currentAuthViewModel: authViewModel)
+            }
+            .navigationViewStyle(DoubleColumnNavigationViewStyle())
+            .environmentObject(homeViewModel)
         }
+    }
 
     @ViewBuilder
         private func content(for tab: Tab, currentAuthViewModel: AuthViewModel) -> some View {
