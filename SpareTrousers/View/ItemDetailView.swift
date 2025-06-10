@@ -140,14 +140,14 @@ struct ItemInfoPanelView: View {
             
             Spacer(minLength: horizontalSizeClass == .compact ? 120 : 150)
         }
-        padding()
-                .background(Color.appWhite)
-                .clipShape(
-                    RoundedCorner(
-                        radius: infoCornerRadius,
-                        corners: [.topLeft, .topRight]
-                    )
-                )
+        .padding()
+        .background(Color.appWhite)
+        .clipShape(
+            RoundedCorner(
+                radius: infoCornerRadius,
+                corners: [.topLeft, .topRight]
+            )
+        )
     }
 }
 
