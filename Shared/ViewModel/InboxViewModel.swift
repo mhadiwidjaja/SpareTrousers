@@ -145,37 +145,6 @@ class InboxViewModel: ObservableObject {
         return Transaction(id: id, transactionDate: transactionDateStr, startTime: startTimeStr, endTime: endTimeStr, relatedItemId: relatedItemId, ownerId: ownerId, borrowerId: borrowerId, requestStatus: requestStatus)
     }
     
-    // Generates local, non-persistent reminder messages based on `relevantTransactions`.
-//    private func generateAndMergeLocalReminders() {
-//        guard let currentUid = self.currentUserId else { return }
-//        var localReminders: [InboxMessage] = []
-//        let now = Date()
-//        
-//        for transaction in self.relevantTransactions {
-//            guard let endTimeDate = isoDateFormatter.date(from: transaction.endTime) else { continue }
-//            
-//            if transaction.borrowerId == currentUid &&
-//                (transaction.requestStatus == "approved" || transaction.requestStatus == "active_rental") &&
-//                now >= endTimeDate {
-//                let reminderId = "borrower_return_prompt_\(transaction.id)"
-//                if !self.inboxMessages.contains(where: { $0.id == reminderId && $0.type.hasPrefix("local_") }) {
-//                    localReminders.append(InboxMessage(
-//                        id: reminderId,
-//                        dateLine: "Have you returned '\(transaction.relatedItemId)'?",
-//                        type: MSG_TYPE_LOCAL_BORROWER_RETURN_PROMPT,
-//                        showsRejectButton: true,
-//                        relatedTransactionId: transaction.id,
-//                        timestamp: endTimeDate.timeIntervalSince1970 + 1,
-//                        isRead: false, lenderName: "System", itemName: transaction.relatedItemId
-//                    ))
-//                }
-//            }
-//        }
-//        DispatchQueue.main.async {
-//            let firebaseMessages = self.inboxMessages.filter { !$0.type.hasPrefix("local_") }
-//            self.inboxMessages = (firebaseMessages + localReminders).sorted(by: { $0.timestamp > $1.timestamp })
-//        }
-//    }
     private func generateAndMergeLocalReminders() {
         guard let currentUid = self.currentUserId, !relevantTransactions.isEmpty else {
             // If no relevant transactions, ensure no local reminders are present
@@ -270,46 +239,6 @@ class InboxViewModel: ObservableObject {
         .eraseToAnyPublisher()
     }
     
-    // MARK: - Message Action Handlers
-    // Handles the Borrower's return action, updating transaction status and notifying the Lender.
-//    func handleBorrowerReturnedAction(message: InboxMessage, didReturn: Bool) {
-//        guard let transactionId = message.relatedTransactionId,
-//              let currentUid = self.currentUserId,
-//              let transaction = relevantTransactions.first(where: { $0.id == transactionId }),
-//              transaction.borrowerId == currentUid else {
-//            print("Error: Cannot process borrower return action. Invalid context."); return
-//        }
-//        
-//        if didReturn {
-//            //  Update Transaction status to "pending_lender_confirmation"
-//            dbRef.child("transactions").child(transactionId).child("requestStatus").setValue("pending_lender_confirmation") { [weak self] error, _ in
-//                guard let self = self else { return }
-//                if let error = error { self.handleError("updating transaction for borrower return", error); return }
-//                
-//                // Send InboxMessage to Owner
-//                let ownerMessageId = UUID().uuidString
-//                let borrowerName = self.authViewModel_UserDisplayName ?? self.authViewModel_UserEmail ?? "A user"
-//                let ownerMessage = InboxMessage(
-//                    id: ownerMessageId,
-//                    dateLine: "\(borrowerName) states they have returned '\(message.itemName)'. Please confirm.",
-//                    type: self.MSG_TYPE_LENDER_CONFIRM_RECEIPT_PROMPT,
-//                    showsRejectButton: true,
-//                    relatedTransactionId: transactionId,
-//                    timestamp: Date().timeIntervalSince1970,
-//                    isRead: false,
-//                    lenderName: borrowerName,
-//                    itemName: transaction.relatedItemId
-//                )
-//                self.sendMessage(ownerMessage, toUser: transaction.ownerId)
-//                
-//                self.markMessageAsRead(messageId: message.id)
-//            }
-//        } else {
-//            print("Borrower indicated item not yet returned for transaction: \(transactionId)")
-//            self.markMessageAsRead(messageId: message.id)
-//        }
-//    }
-    
     func handleBorrowerReturnedAction(message: InboxMessage, didReturn: Bool) {
         guard let transactionId = message.relatedTransactionId,
               let currentUid = self.currentUserId,
@@ -382,7 +311,7 @@ class InboxViewModel: ObservableObject {
                     timestamp: Date().timeIntervalSince1970,
                     isRead: false,
                     lenderName: "System",
-                    itemName: transaction.relatedItemId
+                    itemName: itemName
                 )
                 self.sendMessage(borrowerMessage, toUser: transaction.borrowerId)
                 self.markMessageAsRead(messageId: message.id)
@@ -395,7 +324,7 @@ class InboxViewModel: ObservableObject {
                 
                 // Notify Borrower
                 let borrowerMessageId = UUID().uuidString
-                let itemName = message.itemName ?? "your item" // Use the name from the message
+                let itemName = message.itemName ?? "your item"
                 let borrowerMessage = InboxMessage(
                     id: borrowerMessageId,
                     dateLine: "Lender reports '\(itemName)' not yet received. Please ensure return or contact lender.",
@@ -405,22 +334,21 @@ class InboxViewModel: ObservableObject {
                     timestamp: Date().timeIntervalSince1970,
                     isRead: false,
                     lenderName: "System",
-                    itemName: transaction.relatedItemId
+                    itemName: itemName
                 )
                 self.sendMessage(borrowerMessage, toUser: transaction.borrowerId)
                 
-                // Optionally, notify Lender that dispute is logged (or just update their UI)
                 let lenderConfirmationId = UUID().uuidString
                 let lenderConfirmationMessage = InboxMessage(
                     id: lenderConfirmationId,
-                    dateLine: "You reported item '\(message.itemName)' not received. Borrower notified.",
+                    dateLine: "You reported item '\(message.itemName ?? "***")' not received. Borrower notified.",
                     type: self.MSG_TYPE_RETURN_DISPUTE_LOGGED_FOR_LENDER,
                     showsRejectButton: false,
                     relatedTransactionId: transactionId,
                     timestamp: Date().timeIntervalSince1970 + 1,
                     isRead: false,
                     lenderName: "System",
-                    itemName: transaction.relatedItemId
+                    itemName: itemName
                 )
                 self.sendMessage(lenderConfirmationMessage, toUser: transaction.ownerId)
                 self.markMessageAsRead(messageId: message.id)
@@ -550,7 +478,7 @@ class InboxViewModel: ObservableObject {
                     let itemName = message.itemName ?? "your item" // Use the name from the message
                     let approvalMessage = InboxMessage(
                         id: approvalMessageId,
-                        dateLine: "Your request for '\(itemName ?? "item")' has been approved!",
+                        dateLine: "Your request for '\(itemName)' has been approved!",
                         type: "request_approved",
                         showsRejectButton: false,
                         relatedTransactionId: transactionId,

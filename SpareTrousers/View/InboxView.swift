@@ -49,7 +49,7 @@ struct InboxView: View {
                     viewModel.errorMessage = "User not logged in."
                 }
             }
-            .navigationTitle(horizontalSizeClass == .regular ? "Inbox" : "")
+            .navigationTitle("")
             .navigationBarHidden(horizontalSizeClass == .compact)
         }
     }

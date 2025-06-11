@@ -196,7 +196,7 @@ width: geo.size.width,
                 AccountSettingsModalView()
                     .environmentObject(authViewModel)
             }
-            .navigationTitle(horizontalSizeClass == .regular ? "Account" : "")
+            .navigationTitle("")
             .navigationBarHidden(horizontalSizeClass == .compact)
         }
     }

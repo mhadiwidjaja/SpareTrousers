@@ -171,7 +171,7 @@ struct MyRentalsView: View {
                 .offset(y: horizontalSizeClass == .compact ? -68 : 0)
             }
             .background(Color.appOffWhite.edgesIgnoringSafeArea(.all))
-            .navigationTitle(horizontalSizeClass == .regular ? "My Rentals" : "")
+            .navigationTitle("")
             .navigationBarHidden(horizontalSizeClass == .compact)
         }
     }
